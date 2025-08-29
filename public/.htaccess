@@ -1,0 +1,14 @@
+RewriteEngine On
+
+# Handle Next.js routing
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /server.js [QSA,L]
+
+# Set Node.js environment
+SetEnv NODE_ENV production
+
+# Handle static files
+RewriteCond %{REQUEST_URI} !^/server\.js
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^(.*)$ - [L]

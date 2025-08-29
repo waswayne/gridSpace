@@ -1,60 +1,36 @@
-type ButtonVariant = "primary" | "secondary" | "transparent";
+import { ReactNode } from "react";
 
-export type ButtonProps = {
-  children: React.ReactNode;
-  variant?: ButtonVariant;
-  href?: string;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+interface ButtonProps {
+  children: ReactNode;
+  variant?: "primary" | "secondary";
   className?: string;
-  fullWidth?: boolean;
-  size?: "sm" | "md";
-};
-
-function getVariantClasses(variant: ButtonVariant) {
-  switch (variant) {
-    case "secondary":
-      return "bg-[#002F5B] hover:bg-slate-900 text-white";
-    case "transparent":
-      return "bg-transparent text-slate-900 hover:bg-slate-900 hover:text-white";
-    case "primary":
-    default:
-      return "bg-[#F25417] hover:bg-[#F25417] text-white";
-  }
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 }
 
-function getSizeClasses(size: "sm" | "md") {
-  return size === "sm" ? "px-3 py-1.5 text-sm" : "px-4 py-2";
-}
-
-export function Button({
+export default function Button({
   children,
   variant = "primary",
-  href,
-  onClick,
   className = "",
-  fullWidth = false,
-  size = "md",
+  onClick,
+  type = "button",
 }: ButtonProps) {
-  const base =
-    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500 disabled:opacity-60 disabled:cursor-not-allowed";
-  const width = fullWidth ? "w-full" : "";
-  const style = `${base} ${getVariantClasses(variant)} ${getSizeClasses(
-    size
-  )} ${width} ${className}`;
+  const baseClasses =
+    "px-6 py-3 rounded-lg font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
 
-  if (href) {
-    return (
-      <a href={href} className={style}>
-        {children}
-      </a>
-    );
-  }
+  const variantClasses = {
+    primary:
+      "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500",
+    secondary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+  };
 
   return (
-    <button type="button" onClick={onClick} className={style}>
+    <button
+      type={type}
+      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
 }
-
-export default Button;
