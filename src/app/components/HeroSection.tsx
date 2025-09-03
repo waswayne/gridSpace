@@ -1,108 +1,102 @@
-import {
-  Search,
-  MapPin,
-  Calendar,
-  ArrowRight,
-  Users,
-  Star,
-  Lightbulb,
-} from "lucide-react";
-import Button from "./Button";
+import { ArrowRight, Users, MapPin, Medal } from "lucide-react";
+import Image from "next/image";
 
 export default function HeroSection() {
   return (
-    <section className="bg-white py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="space-y-8 col-span-1 lg:col-span-1">
-            <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Find a flexible{" "}
-                <span className="text-orange-500">workspace</span> near you
-              </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Discover verified, flexible workspaces with reliable power,
-                high-speed internet, and everything you need to stay productive
-                on the go.
-              </p>
-            </div>
+    <section className="flex flex-col md:flex-row items-center justify-center px-4 md:px-8 py-10 md:py-16 gap-8 max-w-[1440px] mx-auto">
+      <div className="w-full md:w-1/2">
+        <div className="mb-16">
+          <h1 className="max-sm:text-[32px] text-5xl font-bold text-[#002F5B] mb-6 md:mb-8 leading-tight">
+            Find a <span className="text-[#F25417]">flexible workspace</span>{" "}
+            near you
+          </h1>
+          <p className="text-base md:text-xl text-[#121212] leading-relaxed">
+            Discover verified, flexible workspaces with reliable power,
+            high-speed internet, and everything you need to stay productive on
+            the go.
+          </p>
+        </div>
 
-            {/* Search Bar */}
-            <div className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-lg">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 flex items-center space-x-3 bg-gray-50 rounded-lg px-4 py-3">
-                  <MapPin className="h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Enter location or city"
-                    className="flex-1 bg-transparent outline-none text-gray-700"
-                  />
-                </div>
-                <div className="flex items-center space-x-3 bg-gray-50 rounded-lg px-4 py-3">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="dd/mm/yy"
-                    className="bg-transparent outline-none text-gray-700"
-                  />
-                </div>
-                <Button
-                  variant="primary"
-                  className="flex items-center space-x-2"
-                >
-                  <span>Find a Space</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+        {/* Search Bar */}
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-8 w-full">
+          <div className="flex flex-col [@media(min-width:1440px)]:flex-row items-stretch md:items-center gap-3 md:gap-4 w-full">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-2 w-full">
+              <div className="flex items-center gap-2 px-3 py-2 border border-[#002F5B] rounded-lg w-full sm:w-1/2">
+                <MapPin className="w-6 h-6 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Enter location or city"
+                  className="w-full text-sm text-gray-500 outline-none"
+                />
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 border border-[#002F5B] rounded-lg w-full sm:w-1/2">
+                <div className="w-6 h-6 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="dd/mm/yy"
+                  className="w-full text-sm text-gray-500 outline-none"
+                />
               </div>
             </div>
+            <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[#F25417] text-white font-bold rounded-lg hover:bg-[#E04A0F] w-full [@media(min-width:1440px)]:w-fit whitespace-nowrap">
+              Find a Space
+              <ArrowRight className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
 
-            {/* Statistics */}
-            <div className="flex flex-wrap gap-8">
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    50K+ Active Users
-                  </p>
-                </div>
+        {/* Statistics */}
+        <div className="grid grid-cols-3 gap-6 md:gap-8">
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 max-sm:size-10 bg-[#FFEBE3] rounded-full flex items-center justify-center">
+              <Users className="max-sm:size-[50%] w-8 h-8 text-[#F25417]" />
+            </div>
+            <div>
+              <div className=" max-sm:text-lg text-3xl font-bold text-[#002F5B]">
+                50K+
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <MapPin className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">1200+ Locations</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Star className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">4.9/5 Rating</p>
-                </div>
-              </div>
+              <div className="max-sm:text-xs text-sm text-gray-500">Active Users</div>
             </div>
           </div>
 
-          {/* Right Image */}
-          <div className="relative col-span-1 lg:col-span-1">
-            <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-8">
-              <div className="aspect-[4/3] bg-gradient-to-br from-blue-100 to-orange-100 rounded-xl flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-lg">
-                    <Users className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <p className="text-gray-600 font-medium">
-                    Modern Coworking Space
-                  </p>
-                </div>
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 max-sm:size-10 bg-[#FFEBE3] rounded-full flex items-center justify-center">
+              <MapPin className="max-sm:size-[50%] w-8 h-8 text-[#F25417]" />
+            </div>
+            <div>
+              <div className=" max-sm:text-lg text-3xl font-bold text-[#002F5B]">
+                1200+
               </div>
+              <div className="max-sm:text-xs text-sm text-gray-500">Locations</div>
             </div>
           </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 max-sm:size-10 bg-[#FFEBE3] rounded-full flex items-center justify-center">
+              <Medal className="max-sm:size-[50%] w-8 h-8 text-[#F25417]" />
+            </div>
+            <div>
+              <div className=" max-sm:text-lg text-3xl font-bold text-[#002F5B]">
+                4.9/5
+              </div>
+              <div className="max-sm:text-xs text-sm text-gray-500">Rating</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full md:w-1/2 relative mt-6 md:mt-0">
+        <div className="w-24 h-24 md:w-32 md:h-32 bg-[#D6EBFF] absolute -left-3 -bottom-6"></div>
+        <div className="w-24 h-24 md:w-32 md:h-32 bg-[#FFE2D6] absolute -right-3 -top-6"></div>
+        <div className="w-full h-64 sm:h-80 md:h-[600px] bg-gradient-to-br from-blue-100 to-orange-100 rounded-lg shadow-sm relative overflow-hidden">
+          <Image
+            src="/hero.png"
+            alt="Workspace"
+            width={1000}
+            height={1000}
+            quality={100}
+            className="object-cover w-full h-full"
+          />
         </div>
       </div>
     </section>

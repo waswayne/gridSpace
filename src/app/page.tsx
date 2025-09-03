@@ -1,26 +1,28 @@
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
-import HeroSection from "@/app/components/HeroSection";
-import HowItWorksSection from "@/app/components/HowItWorksSection";
-import WhyChooseSection from "@/app/components/WhyChooseSection";
-import PopularSpacesSection from "@/app/components/PopularSpacesSection";
-import TestimonialsSection from "@/app/components/TestimonialsSection";
-import CTASection from "@/app/components/CTASection";
+"use client";
 
-export default function HomePage() {
+import {
+  Navigation,
+  HeroSection,
+  HowItWorks,
+  WhyChoose,
+  PopularSpaces,
+  Testimonials,
+  CallToAction,
+  Newsletter,
+  Footer,
+} from "./components";
+
+export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      <main>
-        <HeroSection />
-        <HowItWorksSection />
-        <WhyChooseSection />
-        <PopularSpacesSection />
-        <TestimonialsSection />
-        <CTASection />
-      </main>
-
+    <div className="min-h-screen bg-[#F7F5F5]">
+      <Navigation />
+      <HeroSection />
+      <HowItWorks />
+      <WhyChoose />
+      <PopularSpaces />
+      <Testimonials />
+      <CallToAction />
+      <Newsletter />
       <Footer />
     </div>
   );

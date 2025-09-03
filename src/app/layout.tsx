@@ -8,6 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/favicon.ico",
+  },
   title: "GridSpace - Find Flexible Workspaces Near You",
   description:
     "Discover verified, flexible workspaces with reliable power, high-speed internet, and everything you need to stay productive on the go.",

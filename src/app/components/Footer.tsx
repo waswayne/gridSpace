@@ -1,89 +1,122 @@
-import Button from './Button';
-import { Grid3X3, Facebook, Instagram, Twitter } from 'lucide-react';
+import { Mail, Phone, Facebook, Instagram, Twitter } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Brand Column */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Grid3X3 className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold">GridSpace</span>
+    <footer className="bg-[#002F5B] text-white py-12 md:py-16">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+          <div className="col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <Image
+                src="/logo.png"
+                alt="GridSpace Logo"
+                width={40}
+                height={40}
+              />
+              <span className="text-2xl font-bold text-[#F25417]">
+                GridSpace
+              </span>
             </div>
-            <p className="text-gray-300 mb-6 max-w-md">
-              Connecting professionals with flexible, verified workspaces across Nigeria.
+            <p className="text-sm mb-4">
+              Connecting professionals with flexible, verified workspaces across
+              Nigeria.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
+            <div className="flex gap-4">
+              <Facebook className="w-7 h-7 cursor-pointer hover:text-[#F25417]" />
+              <Instagram className="w-6 h-6 cursor-pointer hover:text-[#F25417]" />
+              <Twitter className="w-6 h-6 cursor-pointer hover:text-[#F25417]" />
             </div>
           </div>
 
-          {/* Company Column */}
           <div>
-            <h3 className="font-semibold mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">How it works</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Host your space</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a></li>
+            <h3 className="font-bold text-lg mb-4">Company</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  How it works
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  Host your space
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  Contact
+                </a>
+              </li>
             </ul>
           </div>
 
-          {/* Support Column */}
           <div>
-            <h3 className="font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Safety</a></li>
+            <h3 className="font-bold text-lg mb-4">Support</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  Help Center
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#F25417]">
+                  Safety
+                </a>
+              </li>
             </ul>
           </div>
 
-          {/* Partners Column */}
           <div>
-            <h3 className="font-semibold mb-4">Partners & Opportunities</h3>
-            <p className="text-gray-300 mb-4">
-              Want to invest or collaborate? We're open to opportunities
+            <h3 className="font-bold text-lg mb-4">Partners & Opportunities</h3>
+            <p className="text-sm mb-4">
+              Want to invest or collaborate? We&apos;re open to opportunities
             </p>
-            <Button variant="primary" className="w-full">
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#F25417] text-white font-bold rounded-lg hover:bg-[#E04A0F]">
               Contact Us
-            </Button>
+              <Mail className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Contact Column */}
           <div>
-            <h3 className="font-semibold mb-4">Contact</h3>
-            <div className="space-y-2">
-              <p className="text-gray-300">hello@gridspace.com</p>
-              <p className="text-gray-300">09046575527</p>
+            <h3 className="font-bold text-lg mb-4">Contact</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                <span>hello@gridspace.com</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-5 h-5" />
+                <span>09046575527</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
+        <div className="border-t border-gray-600 pt-8">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between items-center">
+            <p className="font-bold text-center md:text-left">
               Copyright © 2025, GridSpace. All rights reserved.
             </p>
-            <div className="flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+            <div className="flex gap-6 text-sm">
+              <a href="#" className="hover:text-[#F25417]">
                 Privacy Policy
               </a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <a href="#" className="hover:text-[#F25417]">
                 Terms of Service
               </a>
             </div>

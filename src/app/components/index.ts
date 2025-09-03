@@ -1,0 +1,10 @@
+export { default as Navigation } from "./Navigation";
+export { default as HeroSection } from "./HeroSection";
+export { default as HowItWorks } from "./HowItWorks";
+export { default as WhyChoose } from "./WhyChoose";
+export { default as PopularSpaces } from "./PopularSpaces";
+export { default as Testimonials } from "./Testimonials";
+export { default as CallToAction } from "./CallToAction";
+export { default as Newsletter } from "./Newsletter";
+export { default as Footer } from "./Footer";
+export { default as Button } from "./Button";
