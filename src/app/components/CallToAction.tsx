@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Button } from "./index";
 
 export default function CallToAction() {
   return (
@@ -10,13 +11,17 @@ export default function CallToAction() {
             <h2 className="text-2xl md:text-4xl font-bold text-[#002F5B] mb-4 md:mb-6">
               Ready to Find Your Perfect Workspace?
             </h2>
-            <p className="text-base md:text-2xl text-[#121212] mb-6 md:mb-8">
+            <p className="text-base md:text-[20px] text-[#121212] mb-6 md:mb-8">
               Join thousands of professionals who trust Gridspace for their
               workspace needs
             </p>
-            <button className="px-6 py-3 bg-[#F25417] text-white font-bold rounded-lg hover:bg-[#E04A0F] w-full md:w-auto">
-              Start Searching
-            </button>
+            <Button 
+                    variant="primary"
+                    size="lg"
+                    className=""
+                    >
+                     Start Searching
+            </Button>
           </div>
 
           <div className="flex-1 relative w-full">

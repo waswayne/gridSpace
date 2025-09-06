@@ -30,9 +30,9 @@ export default function Button({
   };
 
   const sizeClasses = {
-    sm: "px-3 py-2 text-sm",
+    sm: "px-[10px] py-[13px] text-[16px]",
     md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base",
+    lg: "text-[18px] max-sm:text-[16px] py-[12px] px-[22px]",
   };
 
   const disabledClasses = disabled

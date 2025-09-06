@@ -13,7 +13,7 @@ export default function Navigation() {
       <nav className="flex items-center justify-between px-4 md:px-8 py-2 max-w-[1440px] mx-auto">
         <div className="flex items-center gap-4">
           <Image src="/logo.png" alt="GridSpace Logo" width={40} height={40} />
-          <span className="text-2xl font-bold text-[#F25417]">GridSpace</span>
+          <span className="text-[28px] font-bold text-[#F25417]">GridSpace</span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -51,7 +51,7 @@ export default function Navigation() {
 
       {/* Mobile Nav Panel */}
       {mobileOpen && (
-        <div className="[@media(min-width:840px)]:hidden px-4 pb-3 bg-white shadow-sm">
+        <div className="[@media(min-width:840px)]:hidden px-4 md:px-8 py-8 pb-3 bg-white shadow-sm">
           <div className="flex flex-col gap-3">
             <a
               href="#"

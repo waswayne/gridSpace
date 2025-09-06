@@ -3,22 +3,22 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#002F5B] text-white py-12 md:py-16">
+    <footer className="bg-[#002F5B] text-white py-5">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 max-lg:gap-4 mb-8">
           <div className="col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <Image
                 src="/logo.png"
                 alt="GridSpace Logo"
-                width={40}
-                height={40}
+                width={48}
+                height={48}
               />
-              <span className="text-2xl font-bold text-[#F25417]">
+              <span className="text-[28px] font-bold text-[#F25417]">
                 GridSpace
               </span>
             </div>
-            <p className="text-sm mb-4">
+            <p className="text-[16px] mb-4">
               Connecting professionals with flexible, verified workspaces across
               Nigeria.
             </p>
@@ -30,8 +30,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Company</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-bold text-[16px] lg:text-[20px] mb-4">Company</h3>
+            <ul className="space-y-2 text-[14px] lg:text-[16px]">
               <li>
                 <a href="#" className="hover:text-[#F25417]">
                   About Us
@@ -56,8 +56,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Support</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-bold text-[16px] lg:text-[20px] mb-4">Support</h3>
+            <ul className="space-y-2 text-[14px] lg:text-[16px]">
               <li>
                 <a href="#" className="hover:text-[#F25417]">
                   Help Center
@@ -82,8 +82,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Partners & Opportunities</h3>
-            <p className="text-sm mb-4">
+            <h3 className="font-bold text-[16px] lg:text-[20px] mb-4">Partners & Opportunities</h3>
+            <p className="text-[14px] lg:text-[16px] mb-4">
               Want to invest or collaborate? We&apos;re open to opportunities
             </p>
             <button className="flex items-center gap-2 px-4 py-2 bg-[#F25417] text-white font-bold rounded-lg hover:bg-[#E04A0F]">
@@ -93,8 +93,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Contact</h3>
-            <div className="space-y-3 text-sm">
+            <h3 className="font-bold text-[16px] lg:text-[20px] mb-4">Contact</h3>
+            <div className="space-y-3 text-[14px] lg:text-[16px]">
               <div className="flex items-center gap-2">
                 <Mail className="w-5 h-5" />
                 <span>hello@gridspace.com</span>

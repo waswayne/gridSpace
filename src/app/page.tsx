@@ -10,6 +10,8 @@ import {
   CallToAction,
   Newsletter,
   Footer,
+  FeaturedSpaces,
+  HostingWorkspace,
 } from "./components";
 
 export default function Home() {
@@ -17,9 +19,11 @@ export default function Home() {
     <div className="min-h-screen bg-[#F7F5F5]">
       <Navigation />
       <HeroSection />
+      <PopularSpaces />
       <HowItWorks />
       <WhyChoose />
-      <PopularSpaces />
+      <FeaturedSpaces />
+      <HostingWorkspace />
       <Testimonials />
       <CallToAction />
       <Newsletter />
