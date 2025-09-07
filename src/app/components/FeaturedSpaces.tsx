@@ -1,3 +1,49 @@
+interface LocationCardProps {
+  city: string;
+  workspaceCount: number;
+  imageNumber: number;
+  overlay?: string;
+}
+
+const LocationCard = ({ city, workspaceCount, imageNumber, overlay = "0.25" }: LocationCardProps) => (
+  <div 
+    className="w-full h-[235px] sm:h-[361px] rounded-[8px] relative overflow-hidden"
+    style={{
+      backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, ${overlay}), rgba(0, 0, 0, ${overlay})), url(/space${imageNumber}.png)`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    }}
+  >
+    <div className="absolute bottom-0 left-0 p-[24px_12px]">
+      <h3 className="font-inter font-semibold text-[20px] md:text-[32px] leading-[39px] text-white">
+        {city}
+      </h3>
+      <p className="font-inter font-normal text-[14px] md:text-[18px] leading-[22px] text-white">
+        {workspaceCount}+ workspace
+      </p>
+    </div>
+  </div>
+);
+
+const locations: LocationCardProps[] = [
+  {
+    city: "Lagos",
+    workspaceCount: 40,
+    imageNumber: 4
+  },
+  {
+    city: "Abuja",
+    workspaceCount: 20,
+    imageNumber: 5,
+    overlay: "0.39"
+  },
+  {
+    city: "Port Harcourt",
+    workspaceCount: 25,
+    imageNumber: 6
+  }
+];
+
 export default function FeaturedSpaces() {
   return (
     <section className="w-full max-w-[1440px] mx-auto px-4 md:px-8 py-5">
@@ -14,62 +60,9 @@ export default function FeaturedSpaces() {
 
         {/* Locations Grid */}
         <div className="flex flex-col md:flex-row items-center gap-[27px] w-full">
-          {/* Lagos Card */}
-          <div 
-            className="w-full h-[235px] sm:h-[361px] rounded-[8px] relative overflow-hidden"
-            style={{
-              backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(/space4.png)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            <div className="absolute bottom-0 left-0 p-[24px_12px]">
-              <h3 className="font-inter font-semibold text-[20px] md:text-[32px] leading-[39px] text-white">
-                Lagos
-              </h3>
-              <p className="font-inter font-normal text-[14px] md:text-[18px] leading-[22px] text-white">
-                40+ workspace
-              </p>
-            </div>
-          </div>
-
-          {/* Abuja Card */}
-          <div 
-            className="w-full h-[235px] sm:h-[361px] rounded-[8px] relative overflow-hidden"
-            style={{
-              backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.39)), url(/space5.png)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            <div className="absolute bottom-0 left-0 p-[24px_12px]">
-              <h3 className="font-inter font-semibold text-[20px] md:text-[32px] leading-[39px] text-white">
-                Abuja
-              </h3>
-              <p className="font-inter font-normal text-[14px] md:text-[18px] leading-[22px] text-white">
-                20+ workspace
-              </p>
-            </div>
-          </div>
-
-          {/* Port Harcourt Card */}
-          <div 
-            className="w-full h-[235px] sm:h-[361px] rounded-[8px] relative overflow-hidden"
-            style={{
-              backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url(/space6.png)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            <div className="absolute bottom-0 left-0 p-[24px_12px]">
-              <h3 className="font-inter font-semibold text-[20px] md:text-[32px] leading-[39px] text-white">
-                Port Harcourt
-              </h3>
-              <p className="font-inter font-normal text-[14px] md:text-[18px] leading-[22px] text-white">
-                25+ workspace
-              </p>
-            </div>
-          </div>
+          {locations.map((location, index) => (
+            <LocationCard key={index} {...location} />
+          ))}
         </div>
       </div>
     </section>

@@ -1,5 +1,7 @@
-import { Mail, Phone, Facebook, Instagram, Twitter } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
+import { FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import Image from "next/image";
+import { Button } from "./index";
 
 export default function Footer() {
   return (
@@ -23,9 +25,9 @@ export default function Footer() {
               Nigeria.
             </p>
             <div className="flex gap-4">
-              <Facebook className="w-7 h-7 cursor-pointer hover:text-[#F25417]" />
-              <Instagram className="w-6 h-6 cursor-pointer hover:text-[#F25417]" />
-              <Twitter className="w-6 h-6 cursor-pointer hover:text-[#F25417]" />
+              <FaFacebook size={24} className="cursor-pointer hover:text-[#F25417]" />
+              <FaInstagram size={24} className="cursor-pointer hover:text-[#F25417]" />
+              <FaXTwitter size={24} className="cursor-pointer hover:text-[#F25417]" />
             </div>
           </div>
 
@@ -86,10 +88,14 @@ export default function Footer() {
             <p className="text-[14px] lg:text-[16px] mb-4">
               Want to invest or collaborate? We&apos;re open to opportunities
             </p>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#F25417] text-white font-bold rounded-lg hover:bg-[#E04A0F]">
+             <Button 
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-2"
+              >
               Contact Us
               <Mail className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
 
           <div>

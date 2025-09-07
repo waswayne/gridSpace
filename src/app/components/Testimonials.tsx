@@ -1,6 +1,71 @@
 import { Quote, Star } from "lucide-react";
 import Image from "next/image";
 
+interface TestimonialProps {
+  image: string;
+  name: string;
+  role: string;
+  content: string;
+  rating: number;
+}
+
+const StarRating = ({ rating }: { rating: number }) => (
+  <div className="flex gap-1">
+    {[...Array(rating)].map((_, i) => (
+      <Star key={i} className="w-4 h-4 text-[#F25417] fill-current" />
+    ))}
+  </div>
+);
+
+const TestimonialCard = ({ image, name, role, content, rating }: TestimonialProps) => (
+  <div className="bg-white p-6 rounded-lg shadow-sm relative overflow-hidden">
+    <div className="absolute -top-3 -z-0 -right-3 w-16 h-16 bg-[#FFEBE3] rounded-full flex items-center justify-center">
+      <Quote className="w-8 h-8 text-[#F25417]" />
+    </div>
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-12 min-w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
+        <Image
+          src={image}
+          alt={`${name}'s profile`}
+          width={800}
+          height={800}
+          className="object-cover w-full h-full"
+        />
+      </div>
+      <div>
+        <h4 className="font-semibold text-[16px] text-black relative z-10">{name}</h4>
+        <p className="text-xs text-[#848383]">{role}</p>
+      </div>
+    </div>
+    <p className="text-[#2E2E2E] text-[16px] lg:text-[18px] mb-4">{content}</p>
+    <StarRating rating={rating} />
+  </div>
+);
+
+const testimonials: TestimonialProps[] = [
+  {
+    image: "/ttmn1.png",
+    name: "John Morgan",
+    role: "Marketing Consultant",
+    content: "Gridspace saved my business trip! Found a perfect workspace with reliable internet in minutes. The booking process was seamless.",
+    rating: 5
+  },
+  {
+    image: "/ttmn2.png",
+    name: "Jessica Wright",
+    role: "Freelancer Developer",
+    content: "As a freelancer, I need flexible workspaces. Gridspace's variety and quality are unmatched. Plus, the rates are very reasonable",
+    rating: 5
+  },
+  {
+    image: "/ttmn3.png",
+    name: "Derek Woods",
+    role: "Product Manager",
+    content: "The verification process gives me confidence. Every space I've booked has been exactly as described. Excellent platform",
+    rating: 5
+  }
+];
+
 export default function Testimonials() {
   return (
     <section className="bg-[#FFC3AC] py-5">
@@ -16,96 +81,9 @@ export default function Testimonials() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm relative overflow-hidden">
-            <div className="absolute -top-3 -z-0 -right-3 w-16 h-16 bg-[#FFEBE3] rounded-full flex items-center justify-center">
-              <Quote className="w-8 h-8 text-[#F25417]" />
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 min-w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
-                <Image
-                  src="/ttmn1.png"
-                  alt="Workspace"
-                  width={800}
-                  height={800}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div>
-                <h4 className="font-semibold text-[16px] text-black relative z-10">John Morgan</h4>
-                <p className="text-xs text-[#848383]">Marketing Consultant</p>
-              </div>
-            </div>
-            <p className="text-[#2E2E2E] text-[16px] lg:text-[18px] mb-4">
-              Gridspace saved my business trip! Found a perfect workspace with
-              reliable internet in minutes. The booking process was seamless.
-            </p>
-            <div className="flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-[#F25417] fill-current" />
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm relative overflow-hidden">
-            <div className="absolute -top-3 -right-3 w-16 h-16 bg-[#FFEBE3] rounded-full flex items-center justify-center">
-              <Quote className="w-8 h-8 text-[#F25417]" />
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 min-w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
-                <Image
-                  src="/ttmn2.png"
-                  alt="Workspace"
-                  width={800}
-                  height={800}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div>
-                <h4 className="font-semibold text-[16px] text-black relative z-10">Jessica Wright</h4>
-                <p className="text-xs text-[#848383]">Freelancer Developer</p>
-              </div>
-            </div>
-            <p className="text-[#2E2E2E] text-[16px] lg:text-[18px] mb-4">
-              As a freelancer, I need flexible workspaces. Gridspace&apos;s
-              variety and quality are unmatched. Plus, the rates are very
-              reasonable
-            </p>
-            <div className="flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-[#F25417] fill-current" />
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm relative overflow-hidden">
-            <div className="absolute -top-3 -right-3 w-16 h-16 bg-[#FFEBE3] rounded-full flex items-center justify-center">
-              <Quote className="w-8 h-8 text-[#F25417]" />
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 min-w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
-                <Image
-                  src="/ttmn3.png"
-                  alt="Workspace"
-                  width={800}
-                  height={800}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div>
-                <h4 className="font-semibold text-[16px] text-black relative z-10">Derek Woods</h4>
-                <p className="text-xs text-[#848383]">Product Manager</p>
-              </div>
-            </div>
-            <p className="text-[#2E2E2E] text-[16px] lg:text-[18px] mb-4">
-              The verification process gives me confidence. Every space
-              I&apos;ve booked has been exactly as described. Excellent platform
-            </p>
-            <div className="flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-[#F25417] fill-current" />
-              ))}
-            </div>
-          </div>
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard key={index} {...testimonial} />
+          ))}
         </div>
       </div>
     </section>

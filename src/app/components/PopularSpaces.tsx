@@ -1,6 +1,80 @@
-import {Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Image from "next/image";
 import { Button } from "./index";
+
+interface SpaceProps {
+  image: string;
+  name: string;
+  location: string;
+  rating: number;
+  price: string;
+  isPriority?: boolean;
+}
+
+const Rating = ({ rating }: { rating: number }) => (
+  <div className="flex flex-row items-center gap-1">
+    <Star className="w-5 md:w-6 h-5 md:h-6 text-[#FFC849] fill-current" />
+    <span className="font-inter font-normal text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#121212] tracking-[-0.25px]">
+      {rating}
+    </span>
+  </div>
+);
+
+const SpaceCard = ({ image, name, location, rating, price, isPriority }: SpaceProps) => (
+  <div className="flex flex-col items-start gap-[8px] w-full">
+    <div className="relative w-full h-[250px] md:h-[302px] rounded-[8px] overflow-hidden">
+      <Image
+        src={image}
+        alt={name}
+        width={800}
+        height={800}
+        className="object-cover w-full h-full"
+        priority={isPriority}
+      />
+    </div>
+    <div className="flex flex-col gap-[10px] w-full">
+      <div className="flex flex-col justify-center gap-[4px]">
+        <div className="flex flex-row items-start justify-between w-full">
+          <h3 className="font-inter font-semibold text-[16px] md:text-[18px] leading-[20px] md:leading-[22px] text-[#002F5B]">
+            {name}
+          </h3>
+          <Rating rating={rating} />
+        </div>
+        <p className="font-inter font-medium text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#686767]">
+          {location}
+        </p>
+      </div>
+      <p className="font-inter font-semibold text-[16px] md:text-[20px] leading-[20px] md:leading-[24px] text-[#002F5B]">
+        {price}/day
+      </p>
+    </div>
+  </div>
+);
+
+const spaces: SpaceProps[] = [
+  {
+    image: "/space1.png",
+    name: "Urban Coworking Hub",
+    location: "Victoria Island, Lagos",
+    rating: 4.75,
+    price: "₦5000",
+    isPriority: true
+  },
+  {
+    image: "/space2.png",
+    name: "Digital Space",
+    location: "Yaba, Lagos",
+    rating: 4.75,
+    price: "₦10,000"
+  },
+  {
+    image: "/space3.png",
+    name: "Analyst Coworking Hub",
+    location: "Ikeja, Lagos",
+    rating: 4.75,
+    price: "₦5000"
+  }
+];
 
 export default function PopularSpaces() {
   return (
@@ -18,102 +92,9 @@ export default function PopularSpaces() {
 
         {/* Spaces Grid */}
         <div className="flex flex-col md:flex-row items-center gap-6 md:gap-[27px] w-full">
-          {/* First Space */}
-          <div className="flex flex-col items-start gap-[8px] w-full">
-            <div className="relative w-full h-[250px] md:h-[302px] rounded-[8px] overflow-hidden">
-              <Image
-                src="/space1.png"
-                alt="Urban Coworking Hub"
-                width={800}
-                height={800}
-                className="object-cover w-full h-full"
-                priority
-              />
-            </div>
-            <div className="flex flex-col gap-[10px] w-full">
-              <div className="flex flex-col justify-center gap-[4px]">
-                <div className="flex flex-row items-start justify-between w-full">
-                  <h3 className="font-inter font-semibold text-[16px] md:text-[18px] leading-[20px] md:leading-[22px] text-[#002F5B]">
-                    Urban Coworking Hub
-                  </h3>
-                  <div className="flex flex-row items-center gap-1">
-                    <Star className="w-5 md:w-6 h-5 md:h-6 text-[#FFC849] fill-current" />
-                    <span className="font-inter font-normal text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#121212] tracking-[-0.25px]">4.75</span>
-                  </div>
-                </div>
-                <p className="font-inter font-medium text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#686767]">
-                  Victoria Island, Lagos
-                </p>
-              </div>
-              <p className="font-inter font-semibold text-[16px] md:text-[20px] leading-[20px] md:leading-[24px] text-[#002F5B]">
-                ₦5000/day
-              </p>
-            </div>
-          </div>
-
-          {/* Second Space */}
-          <div className="flex flex-col items-start gap-[8px] w-full">
-            <div className="relative w-full h-[250px] md:h-[302px] rounded-[8px] overflow-hidden">
-              <Image
-                src="/space2.png"
-                alt="Digital Space"
-                width={800}
-                height={800}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <div className="flex flex-col gap-[10px] w-full">
-              <div className="flex flex-col justify-center gap-[4px]">
-                <div className="flex flex-row items-start justify-between w-full">
-                  <h3 className="font-inter font-semibold text-[16px] md:text-[18px] leading-[20px] md:leading-[22px] text-[#002F5B]">
-                    Digital Space
-                  </h3>
-                  <div className="flex flex-row items-center gap-1">
-                    <Star className="w-5 md:w-6 h-5 md:h-6 text-[#FFC849] fill-current" />
-                    <span className="font-inter font-normal text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#121212] tracking-[-0.25px]">4.75</span>
-                  </div>
-                </div>
-                <p className="font-inter font-medium text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#686767]">
-                  Yaba, Lagos
-                </p>
-              </div>
-              <p className="font-inter font-semibold text-[16px] md:text-[20px] leading-[20px] md:leading-[24px] text-[#002F5B]">
-                ₦10,000/day
-              </p>
-            </div>
-          </div>
-
-          {/* Third Space */}
-          <div className="flex flex-col items-start gap-[8px] w-full">
-            <div className="relative w-full h-[250px] md:h-[302px] rounded-[8px] overflow-hidden">
-              <Image
-                src="/space3.png"
-                alt="Urban Coworking Hub"
-                width={800}
-                height={800}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <div className="flex flex-col gap-[10px] w-full">
-              <div className="flex flex-col justify-center gap-[4px]">
-                <div className="flex flex-row items-start justify-between w-full">
-                  <h3 className="font-inter font-semibold text-[16px] md:text-[18px] leading-[20px] md:leading-[22px] text-[#002F5B]">
-                    Analyst Coworking Hub
-                  </h3>
-                  <div className="flex flex-row items-center gap-1">
-                    <Star className="w-5 md:w-6 h-5 md:h-6 text-[#FFC849] fill-current" />
-                    <span className="font-inter font-normal text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#121212] tracking-[-0.25px]">4.75</span>
-                  </div>
-                </div>
-                <p className="font-inter font-medium text-[12px] md:text-[14px] leading-[15px] md:leading-[17px] text-[#686767]">
-                  Ikeja, Lagos
-                </p>
-              </div>
-              <p className="font-inter font-semibold text-[16px] md:text-[20px] leading-[20px] md:leading-[24px] text-[#002F5B]">
-                ₦5000/day
-              </p>
-            </div>
-          </div>
+          {spaces.map((space, index) => (
+            <SpaceCard key={index} {...space} />
+          ))}
         </div>
 
         {/* View All Button */}
