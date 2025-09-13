@@ -16,10 +16,10 @@ export default function HostingWorkspace({ heroSrc = "/hosting.png" }: Props) {
         <div className="flex flex-col items-start gap-[23px] md:gap-[42px] w-full">
           {/* Header Section */}
           <div className="flex flex-col items-start gap-[8px] w-full">
-            <h2 className="font-inter font-bold text-[20px] md:text-[32px] leading-[24px] md:leading-[39px] text-[#002F5B] w-full">
+            <h2 className="font-inter font-bold text-[20px] md:text-[32px] leading-[24px] md:leading-[39px] text-[var(--color-secondary)] w-full">
               Earn Money Hosting Workspaces
             </h2>
-            <p className="font-inter font-normal text-[16px] md:text-[20px] leading-[19px] md:leading-[28px] text-[#121212] w-full text-left">
+            <p className="font-inter font-normal text-[16px] md:text-[20px] leading-[19px] md:leading-[28px] text-[var(--color-text-primary)] w-full text-left">
               Transform your unused office space into a revenue stream. Join
               thousands of hosts earning money by sharing their workspaces with
               professionals.
@@ -30,29 +30,30 @@ export default function HostingWorkspace({ heroSrc = "/hosting.png" }: Props) {
           <div className="flex flex-col items-start gap-[16px] md:gap-[32px] w-full max-w-[377px] md:max-w-[524px]">
             {/* Feature 1 */}
             <div className="flex flex-row items-center gap-[11px] w-full">
-              <div className="flex justify-center items-center w-[40px] h-[40px] max-sm:min-h-[40px] max-sm:min-w-[40px] md:w-[52px] md:h-[52px] bg-[#DCFCE7] rounded-full">
-                <DollarSign className="w-[28px] h-[28px] text-[#166534]" />
+              <div className="flex justify-center items-center w-[40px] h-[40px] max-sm:min-h-[40px] max-sm:min-w-[40px] md:w-[52px] md:h-[52px] bg-[var(--color-success-light)] rounded-full">
+                <DollarSign className="w-[28px] h-[28px] text-[var(--color-success)]" />
               </div>
               <div className="flex flex-col items-start max-w-[326px]">
-                <h3 className="font-inter font-bold text-[16px] md:text-[24px] leading-[19px] md:leading-[29px] text-[#121212]">
+                <h3 className="font-inter font-bold text-[16px] md:text-[24px] leading-[19px] md:leading-[29px] text-[var(--color-text-primary)]">
                   Flexible Earnings
                 </h3>
-                <p className="font-inter font-normal text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] text-[#121212]">
-                  Set your own prices and availability. Earn extra income on your schedule
+                <p className="font-inter font-normal text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] text-[var(--color-text-primary)]">
+                  Set your own prices and availability. Earn extra income on
+                  your schedule
                 </p>
               </div>
             </div>
 
             {/* Feature 2 */}
             <div className="flex flex-row items-center gap-[11px] w-full">
-              <div className="flex justify-center items-center w-[40px] h-[40px] max-sm:min-h-[40px] max-sm:min-w-[40px] md:w-[52px] md:h-[52px] bg-[#EDF6FF] rounded-full">
-                <ShieldCheck className="w-[28px] h-[28px] text-[#002F5B]" />
+              <div className="flex justify-center items-center w-[40px] h-[40px] max-sm:min-h-[40px] max-sm:min-w-[40px] md:w-[52px] md:h-[52px] bg-[var(--color-info-light)] rounded-full">
+                <ShieldCheck className="w-[28px] h-[28px] text-[var(--color-secondary)]" />
               </div>
               <div className="flex flex-col items-start max-w-[326px]">
-                <h3 className="font-inter font-bold text-[16px] md:text-[24px] leading-[19px] md:leading-[29px] text-[#121212]">
+                <h3 className="font-inter font-bold text-[16px] md:text-[24px] leading-[19px] md:leading-[29px] text-[var(--color-text-primary)]">
                   Secure Platform
                 </h3>
-                <p className="font-inter font-normal text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] text-[#121212]">
+                <p className="font-inter font-normal text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] text-[var(--color-text-primary)]">
                   Verified users and secure payments.
                 </p>
               </div>
@@ -60,14 +61,14 @@ export default function HostingWorkspace({ heroSrc = "/hosting.png" }: Props) {
 
             {/* Feature 3 */}
             <div className="flex flex-row items-center gap-[11px] w-full">
-              <div className="flex justify-center items-center w-[40px] h-[40px] max-sm:min-h-[40px] max-sm:min-w-[40px] md:w-[52px] md:h-[52px] bg-[#FAF5FF] rounded-full">
-                <Users className="w-[28px] h-[28px] text-[#A855F7]" />
+              <div className="flex justify-center items-center w-[40px] h-[40px] max-sm:min-h-[40px] max-sm:min-w-[40px] md:w-[52px] md:h-[52px] bg-[var(--color-purple-light)] rounded-full">
+                <Users className="w-[28px] h-[28px] text-[var(--color-purple)]" />
               </div>
               <div className="flex flex-col items-start max-w-[326px]">
-                <h3 className="font-inter font-bold text-[16px] md:text-[24px] leading-[19px] md:leading-[29px] text-[#121212]">
+                <h3 className="font-inter font-bold text-[16px] md:text-[24px] leading-[19px] md:leading-[29px] text-[var(--color-text-primary)]">
                   Build Community
                 </h3>
-                <p className="font-inter font-normal text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] text-[#121212]">
+                <p className="font-inter font-normal text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] text-[var(--color-text-primary)]">
                   Connect with entrepreneurs and professionals in your area.
                 </p>
               </div>
@@ -75,11 +76,7 @@ export default function HostingWorkspace({ heroSrc = "/hosting.png" }: Props) {
           </div>
 
           {/* CTA Button */}
-          <Button 
-            variant="primary"
-            size="lg"
-            className=""
-          >
+          <Button variant="primary" size="lg" className="">
             Start Hosting Today
           </Button>
         </div>

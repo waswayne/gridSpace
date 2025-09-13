@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  /* Primary Brand Colors */
+  --color-primary: #f25417;
+  --color-primary-hover: #e04a0f;
+  --color-primary-light: #ffebe3;
+  --color-primary-dark: #d63a0a;
+
+  /* Secondary Brand Colors */
+  --color-secondary: #002f5b;
+  --color-secondary-light: #d6ebff;
+  --color-secondary-dark: #001a3a;
+
+  /* Neutral Colors */
+  --color-tertiary: #121212;
+  --color-quaternary: #f7f5f5;
+  --color-quinary: #fff3ee;
+  --color-senary: #e04a0f;
+  --color-septenary: #000000;
+
+  /* Text Colors */
+  --color-text-primary: #121212;
+  --color-text-secondary: #686767;
+  --color-text-muted: #848383;
+  --color-text-light: #ffffff;
+
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f7f5f5;
+  --color-bg-accent: #fff3ee;
+  --color-bg-howitworks: #f9f3f1;
+  --color-bg-dark: #002f5b;
+
+  /* Status Colors */
+  --color-success: #5fc17f;
+  --color-success-light: #d4fce0;
+  --color-warning: #ffc849;
+  --color-error: #ef4444;
+  --color-info: #2563eb;
+  --color-info-light: #edf6ff;
+
+  /* Accent Colors */
+  --color-purple: #a855f7;
+  --color-purple-light: #faf5ff;
+  --color-blue: #2563eb;
+  --color-blue-light: #d7f7fb;
+
+  /* Border Colors */
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-border-dark: #002f5b;
+
+  /* Fonts */
+  --font-inter: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-inter);
+}
