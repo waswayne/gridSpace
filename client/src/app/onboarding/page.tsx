@@ -93,36 +93,36 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F5] flex items-center justify-center p-4">
-      <div className="w-full max-w-[1238px] flex flex-col items-start gap-10">
+      <div className="w-full max-w-[1238px] flex flex-col items-start gap-10 md:gap-16">
         {/* Header Section */}
-        <div className="flex flex-col items-center gap-6 w-full">
-          <div className="flex flex-col items-center gap-3 w-full">
-            <h1 className="text-[40px] font-bold text-[#002F5B] text-center leading-[48px]">
+        <div className="flex flex-col items-center gap-4 md:gap-6 w-full">
+          <div className="flex flex-col items-center gap-1.5 md:gap-3 w-full">
+            <h1 className="text-[20px] md:text-[40px] font-bold text-[#002F5B] text-center leading-6 md:leading-[48px] w-[223px] md:w-full">
               Welcome to GridSpace
             </h1>
-            <p className="text-[24px] font-normal text-[#6D6D6D] text-center leading-[29px]">
+            <p className="text-[16px] md:text-[24px] font-normal text-[#686767] text-center leading-[19px] md:leading-[29px] w-[339px] md:w-full">
               Let&apos;s personalise your workspace experience
             </p>
           </div>
 
           {/* Progress Bar */}
-          <div className="flex flex-col items-start gap-1.5 w-full">
+          <div className="flex flex-col items-start gap-2.5 w-full">
             <div className="w-full h-[7px] bg-[#D9D9D9] rounded-[12px]">
               <div
                 className="h-[7px] bg-[#002F5B] rounded-[12px] transition-all duration-300"
                 style={{
                   width:
                     currentStep === 1
-                      ? "265px"
+                      ? "25%"
                       : currentStep === 2
-                      ? "676px"
+                      ? "50%"
                       : currentStep === 3
-                      ? "1118px"
-                      : "1241px",
+                      ? "75%"
+                      : "100%",
                 }}
               ></div>
             </div>
-            <p className="text-[16px] font-normal text-[#6D6D6D] text-center leading-[19px]">
+            <p className="text-[12px] md:text-[16px] font-normal text-[#686767] text-center leading-[15px] md:leading-[19px] w-full">
               Step {currentStep} of 4
             </p>
           </div>
@@ -131,27 +131,29 @@ export default function OnboardingPage() {
         {/* Step 1: Role Selection */}
         {currentStep === 1 && (
           <div className="flex flex-col items-start gap-6 w-full">
-            <div className="flex flex-col items-start gap-10 w-full">
+            <div className="flex flex-col items-start gap-4 md:gap-10 w-full">
               {/* Looking for Spaces Card */}
               <div
-                className={`w-full h-[220px] bg-white border border-[#D1D5DB] rounded-[8px] p-[70px_37px] cursor-pointer transition-all duration-200 ${
-                  selectedRole === "seeker" ? "ring-2 ring-[#002F5B]" : ""
+                className={`w-full h-[124px] md:h-[220px] border border-[#D1D5DB] rounded-[8px] p-[42px_12px] md:p-[70px_37px] cursor-pointer transition-all duration-200 ${
+                  selectedRole === "seeker"
+                    ? "ring-2 ring-[#002F5B] bg-[#EDF6FF]"
+                    : "bg-white"
                 }`}
                 onClick={() => setSelectedRole("seeker")}
               >
-                <div className="flex flex-row justify-center items-center gap-[637px] w-full h-[80px]">
-                  <div className="flex flex-row justify-center items-center gap-6 w-[494px] h-[80px]">
+                <div className="flex flex-row justify-between items-center w-full">
+                  <div className="flex flex-row items-center gap-3 md:gap-6">
                     {/* Icon */}
-                    <div className="w-[80px] h-[80px] bg-[#002F5B] rounded-[8px] flex items-center justify-center">
-                      <User className="w-[45.71px] h-[45.71px] text-white" />
+                    <div className="w-[40px] h-[40px] md:w-[80px] md:h-[80px] bg-[#002F5B] rounded-[8px] flex items-center justify-center">
+                      <User className="w-6 h-6 md:w-[45.71px] md:h-[45.71px] text-white" />
                     </div>
 
                     {/* Text Content */}
-                    <div className="flex flex-col justify-center items-start gap-2 w-[357px] h-[69px]">
-                      <h3 className="w-[336px] h-[39px] font-semibold text-[32px] leading-[39px] text-[#002F5B]">
+                    <div className="flex flex-col items-start gap-[3px] md:gap-2">
+                      <h3 className="font-semibold text-[16px] md:text-[32px] leading-[19px] md:leading-[39px] text-[#002F5B]">
                         I&apos;m looking for spaces
                       </h3>
-                      <p className="w-[357px] h-[22px] font-normal text-[18px] leading-[22px] text-[#686767]">
+                      <p className="font-normal text-[12px] md:text-[18px] leading-[15px] md:leading-[22px] text-[#686767]">
                         Find and book workspaces for your needs
                       </p>
                     </div>
@@ -159,12 +161,10 @@ export default function OnboardingPage() {
 
                   {/* Radio Button */}
                   <div
-                    className={`w-[33px] h-[33px] bg-white border border-[#264582] rounded-full flex items-center justify-center ${
-                      selectedRole === "seeker" ? "bg-[#002F5B]" : ""
-                    }`}
+                    className={`w-[20px] h-[20px] md:w-[33px] md:h-[33px] border-1 p-[2px] border-[#264582] rounded-full flex items-center justify-center bg-white`}
                   >
                     {selectedRole === "seeker" && (
-                      <div className="w-[12px] h-[12px] bg-white rounded-full"></div>
+                      <div className="w-full h-full bg-[#002F5B] rounded-full"></div>
                     )}
                   </div>
                 </div>
@@ -172,24 +172,26 @@ export default function OnboardingPage() {
 
               {/* Host Spaces Card */}
               <div
-                className={`w-full h-[220px] bg-white border border-[#D1D5DB] rounded-[8px] p-[70px_37px] cursor-pointer transition-all duration-200 ${
-                  selectedRole === "host" ? "ring-2 ring-[#002F5B]" : ""
+                className={`w-full h-[124px] md:h-[220px] border border-[#D1D5DB] rounded-[8px] p-[42px_12px] md:p-[70px_37px] cursor-pointer transition-all duration-200 ${
+                  selectedRole === "host"
+                    ? "ring-2 ring-[#002F5B] bg-[#EDF6FF]"
+                    : "bg-white"
                 }`}
                 onClick={() => setSelectedRole("host")}
               >
-                <div className="flex flex-row justify-center items-center gap-[637px] w-full h-[80px]">
-                  <div className="flex flex-row justify-center items-center gap-6 w-[494px] h-[80px]">
+                <div className="flex flex-row justify-between items-center w-full">
+                  <div className="flex flex-row items-center gap-3 md:gap-6">
                     {/* Icon */}
-                    <div className="w-[80px] h-[80px] bg-[#002F5B] rounded-[8px] flex items-center justify-center">
-                      <Grid3X3 className="w-[45.71px] h-[45.71px] text-white" />
+                    <div className="w-[40px] h-[40px] md:w-[80px] md:h-[80px] bg-[#002F5B] rounded-[8px] flex items-center justify-center">
+                      <Grid3X3 className="w-6 h-6 md:w-[45.71px] md:h-[45.71px] text-white" />
                     </div>
 
                     {/* Text Content */}
-                    <div className="flex flex-col justify-center items-start gap-2 w-[336px] h-[69px]">
-                      <h3 className="w-[336px] h-[39px] font-semibold text-[32px] leading-[39px] text-[#002F5B]">
+                    <div className="flex flex-col items-start gap-[3px] md:gap-2">
+                      <h3 className="font-semibold text-[16px] md:text-[32px] leading-[19px] md:leading-[39px] text-[#002F5B]">
                         I want to host spaces
                       </h3>
-                      <p className="w-[318px] h-[22px] font-normal text-[18px] leading-[22px] text-[#686767]">
+                      <p className="font-normal text-[12px] md:text-[18px] leading-[15px] md:leading-[22px] text-[#686767]">
                         List your workspace and earn income
                       </p>
                     </div>
@@ -197,12 +199,10 @@ export default function OnboardingPage() {
 
                   {/* Radio Button */}
                   <div
-                    className={`w-[33px] h-[33px] bg-white border border-[#264582] rounded-full flex items-center justify-center ${
-                      selectedRole === "host" ? "bg-[#002F5B]" : ""
-                    }`}
+                    className={`w-[20px] h-[20px] md:w-[33px] md:h-[33px] border-1 p-[2px] border-[#264582] rounded-full flex items-center justify-center bg-white`}
                   >
                     {selectedRole === "host" && (
-                      <div className="w-[12px] h-[12px] bg-white rounded-full"></div>
+                      <div className="w-full h-full bg-[#002F5B] rounded-full"></div>
                     )}
                   </div>
                 </div>
@@ -213,41 +213,41 @@ export default function OnboardingPage() {
 
         {/* Step 2: Workspace Purpose Selection */}
         {currentStep === 2 && (
-          <div className="w-full h-[596px] bg-white rounded-[8px] relative">
+          <div className="w-full bg-white rounded-[8px] p-4 sm:p-6 lg:p-8">
             {/* Content Container */}
-            <div className="absolute w-[1191px] h-[280px] left-[25px] top-[182px] flex flex-col items-start gap-[14px]">
+            <div className="flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 w-full">
               {/* Section Title */}
-              <div className="absolute w-[525px] h-[73px] left-[calc(50%-525px/2-1px)] top-[-122px] flex flex-col items-center gap-3">
-                <h2 className="w-[525px] h-[39px] font-bold text-[32px] leading-[39px] text-[#002F5B] text-center">
+              <div className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-2xl">
+                <h2 className="font-bold text-[16px] sm:text-[18px] lg:text-[32px] leading-[20px] sm:leading-[22px] lg:leading-[39px] text-[#002F5B] text-center">
                   What will you use workspace for?
                 </h2>
-                <p className="w-[525px] h-[22px] font-normal text-[18px] leading-[22px] text-[#6D6D6D] text-center">
+                <p className="font-normal text-[12px] sm:text-[14px] lg:text-[18px] leading-[15px] sm:leading-[17px] lg:leading-[22px] text-[#6D6D6D] text-center max-w-lg">
                   Select all that apply to help us recommend the best spaces
                 </p>
               </div>
 
               {/* Purpose Options Grid */}
-              <div className="flex flex-col items-start gap-[21px] w-full">
-                {/* Row 1 */}
-                <div className="flex flex-row items-center gap-[21px] w-full h-[84px]">
+              <div className="w-full max-w-4xl lg:max-w-none">
+                {/* Mobile: Single column, Tablet: 2 columns, Desktop: 2 columns */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 w-full">
                   {/* Remote Work */}
                   <div
-                    className={`w-[585px] h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-[11px_18px] cursor-pointer transition-all duration-200 ${
+                    className={`w-full h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       selectedPurposes.includes("remote-work")
-                        ? "ring-2 ring-[#002F5B]"
+                        ? "ring-2 ring-[#002F5B] bg-blue-50"
                         : ""
                     }`}
                     onClick={() => togglePurpose("remote-work")}
                   >
-                    <div className="flex flex-row items-center gap-6 w-full h-[43px]">
-                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center">
-                        <Monitor className="w-6 h-6 text-[#121212]" />
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 w-full h-full">
+                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center flex-shrink-0">
+                        <Monitor className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
                       </div>
-                      <div className="flex flex-col justify-center items-start gap-0 w-[195px] h-[43px]">
-                        <h3 className="w-[130px] h-[24px] font-semibold text-[20px] leading-[24px] text-[#002F5B]">
+                      <div className="flex flex-col justify-center items-start gap-0 flex-1 min-w-0">
+                        <h3 className="font-semibold text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#002F5B] truncate w-full">
                           Remote Work
                         </h3>
-                        <p className="w-[195px] h-[19px] font-normal text-[16px] leading-[19px] text-[#686767]">
+                        <p className="font-normal text-[11px] sm:text-[12px] lg:text-[16px] leading-[13px] sm:leading-[15px] lg:leading-[19px] text-[#686767] truncate w-full">
                           Focus on daily work tasks
                         </p>
                       </div>
@@ -256,49 +256,46 @@ export default function OnboardingPage() {
 
                   {/* Study Session */}
                   <div
-                    className={`w-[585px] h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-[11px_18px] cursor-pointer transition-all duration-200 ${
+                    className={`w-full h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       selectedPurposes.includes("study")
-                        ? "ring-2 ring-[#002F5B]"
+                        ? "ring-2 ring-[#002F5B] bg-blue-50"
                         : ""
                     }`}
                     onClick={() => togglePurpose("study")}
                   >
-                    <div className="flex flex-row items-center gap-6 w-full h-[43px]">
-                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-[#121212]" />
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 w-full h-full">
+                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center flex-shrink-0">
+                        <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
                       </div>
-                      <div className="flex flex-col justify-center items-start gap-0 w-[173px] h-[43px]">
-                        <h3 className="w-[139px] h-[24px] font-semibold text-[20px] leading-[24px] text-[#002F5B]">
+                      <div className="flex flex-col justify-center items-start gap-0 flex-1 min-w-0">
+                        <h3 className="font-semibold text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#002F5B] truncate w-full">
                           Study Session
                         </h3>
-                        <p className="w-[173px] h-[19px] font-normal text-[16px] leading-[19px] text-[#686767]">
+                        <p className="font-normal text-[11px] sm:text-[12px] lg:text-[16px] leading-[13px] sm:leading-[15px] lg:leading-[19px] text-[#686767] truncate w-full">
                           Quiet Place for reading
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Row 2 */}
-                <div className="flex flex-row items-center gap-[21px] w-full h-[84px]">
                   {/* Team meetings */}
                   <div
-                    className={`w-[585px] h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-[11px_18px] cursor-pointer transition-all duration-200 ${
+                    className={`w-full h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       selectedPurposes.includes("meetings")
-                        ? "ring-2 ring-[#002F5B]"
+                        ? "ring-2 ring-[#002F5B] bg-blue-50"
                         : ""
                     }`}
                     onClick={() => togglePurpose("meetings")}
                   >
-                    <div className="flex flex-row items-center gap-6 w-full h-[43px]">
-                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center">
-                        <Users className="w-6 h-6 text-[#121212]" />
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 w-full h-full">
+                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center flex-shrink-0">
+                        <Users className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
                       </div>
-                      <div className="flex flex-col justify-center items-start gap-0 w-[210px] h-[43px]">
-                        <h3 className="w-[149px] h-[24px] font-semibold text-[20px] leading-[24px] text-[#002F5B]">
+                      <div className="flex flex-col justify-center items-start gap-0 flex-1 min-w-0">
+                        <h3 className="font-semibold text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#002F5B] truncate w-full">
                           Team meetings
                         </h3>
-                        <p className="w-[210px] h-[19px] font-normal text-[16px] leading-[19px] text-[#686767]">
+                        <p className="font-normal text-[11px] sm:text-[12px] lg:text-[16px] leading-[13px] sm:leading-[15px] lg:leading-[19px] text-[#686767] truncate w-full">
                           Collaborate with colleagues
                         </p>
                       </div>
@@ -307,49 +304,46 @@ export default function OnboardingPage() {
 
                   {/* Networking */}
                   <div
-                    className={`w-[585px] h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-[11px_18px] cursor-pointer transition-all duration-200 ${
+                    className={`w-full h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       selectedPurposes.includes("networking")
-                        ? "ring-2 ring-[#002F5B]"
+                        ? "ring-2 ring-[#002F5B] bg-blue-50"
                         : ""
                     }`}
                     onClick={() => togglePurpose("networking")}
                   >
-                    <div className="flex flex-row items-center gap-6 w-full h-[43px]">
-                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center">
-                        <Handshake className="w-6 h-6 text-[#121212]" />
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 w-full h-full">
+                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center flex-shrink-0">
+                        <Handshake className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
                       </div>
-                      <div className="flex flex-col justify-center items-start gap-0 w-[183px] h-[43px]">
-                        <h3 className="w-[113px] h-[24px] font-semibold text-[20px] leading-[24px] text-[#002F5B]">
+                      <div className="flex flex-col justify-center items-start gap-0 flex-1 min-w-0">
+                        <h3 className="font-semibold text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#002F5B] truncate w-full">
                           Networking
                         </h3>
-                        <p className="w-[183px] h-[19px] font-normal text-[16px] leading-[19px] text-[#686767]">
+                        <p className="font-normal text-[11px] sm:text-[12px] lg:text-[16px] leading-[13px] sm:leading-[15px] lg:leading-[19px] text-[#686767] truncate w-full">
                           Meet New Professionals
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Row 3 */}
-                <div className="flex flex-row items-center gap-[21px] w-full h-[84px]">
                   {/* Presentations */}
                   <div
-                    className={`w-[585px] h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-[11px_18px] cursor-pointer transition-all duration-200 ${
+                    className={`w-full h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       selectedPurposes.includes("presentations")
-                        ? "ring-2 ring-[#002F5B]"
+                        ? "ring-2 ring-[#002F5B] bg-blue-50"
                         : ""
                     }`}
                     onClick={() => togglePurpose("presentations")}
                   >
-                    <div className="flex flex-row items-center gap-6 w-full h-[43px]">
-                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center">
-                        <Presentation className="w-6 h-6 text-[#121212]" />
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 w-full h-full">
+                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center flex-shrink-0">
+                        <Presentation className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
                       </div>
-                      <div className="flex flex-col justify-center items-start gap-0 w-[201px] h-[43px]">
-                        <h3 className="w-[135px] h-[24px] font-semibold text-[20px] leading-[24px] text-[#002F5B]">
+                      <div className="flex flex-col justify-center items-start gap-0 flex-1 min-w-0">
+                        <h3 className="font-semibold text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#002F5B] truncate w-full">
                           Presentations
                         </h3>
-                        <p className="w-[201px] h-[19px] font-normal text-[16px] leading-[19px] text-[#686767]">
+                        <p className="font-normal text-[11px] sm:text-[12px] lg:text-[16px] leading-[13px] sm:leading-[15px] lg:leading-[19px] text-[#686767] truncate w-full">
                           Present to Client or Teams
                         </p>
                       </div>
@@ -358,22 +352,22 @@ export default function OnboardingPage() {
 
                   {/* Creative Work */}
                   <div
-                    className={`w-[585px] h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-[11px_18px] cursor-pointer transition-all duration-200 ${
+                    className={`w-full h-[84px] bg-white border border-[#D1D5DB] rounded-[12px] p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       selectedPurposes.includes("creative")
-                        ? "ring-2 ring-[#002F5B]"
+                        ? "ring-2 ring-[#002F5B] bg-blue-50"
                         : ""
                     }`}
                     onClick={() => togglePurpose("creative")}
                   >
-                    <div className="flex flex-row items-center gap-6 w-full h-[43px]">
-                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center">
-                        <Layers className="w-6 h-6 text-[#121212]" />
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 w-full h-full">
+                      <div className="w-[40px] h-[40px] bg-[#E1E1E1] rounded-[12px] flex items-center justify-center flex-shrink-0">
+                        <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
                       </div>
-                      <div className="flex flex-col justify-center items-start gap-0 w-[269px] h-[43px]">
-                        <h3 className="w-[137px] h-[24px] font-semibold text-[20px] leading-[24px] text-[#002F5B]">
+                      <div className="flex flex-col justify-center items-start gap-0 flex-1 min-w-0">
+                        <h3 className="font-semibold text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#002F5B] truncate w-full">
                           Creative Work
                         </h3>
-                        <p className="w-[269px] h-[19px] font-normal text-[16px] leading-[19px] text-[#686767]">
+                        <p className="font-normal text-[11px] sm:text-[12px] lg:text-[16px] leading-[13px] sm:leading-[15px] lg:leading-[19px] text-[#686767] truncate w-full">
                           Designs and other creative projects
                         </p>
                       </div>
@@ -387,85 +381,80 @@ export default function OnboardingPage() {
 
         {/* Step 3: Location Selection */}
         {currentStep === 3 && (
-          <div className="w-full h-[596px] bg-white rounded-[8px] relative">
+          <div className="w-full h-[432px] sm:h-[596px] bg-white rounded-[8px] p-4 sm:p-6 lg:p-8">
             {/* Content Container */}
-            <div className="absolute w-[1204px] h-[476px] left-[21px] top-[60px] flex flex-col items-center gap-8">
-              {/* Main Content */}
-              <div className="w-[861px] h-[396px] flex flex-col items-center gap-[49px]">
-                {/* Section Title */}
-                <div className="w-[503px] h-[73px] flex flex-col items-center gap-3">
-                  <h2 className="w-[503px] h-[39px] font-bold text-[32px] leading-[39px] text-[#002F5B] text-center">
-                    Where are you based?
-                  </h2>
-                  <p className="w-[503px] h-[22px] font-normal text-[18px] leading-[22px] text-[#686767] text-center">
-                    Tell us your primary city to show you relevant workspaces
-                  </p>
+            <div className="flex flex-col items-center gap-8 sm:gap-10 lg:gap-12 w-full h-full">
+              {/* Section Title */}
+              <div className="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-2xl">
+                <h2 className="font-bold text-[18px] sm:text-[24px] lg:text-[32px] leading-[22px] sm:leading-[29px] lg:leading-[39px] text-[#002F5B] text-center">
+                  Where are you based?
+                </h2>
+                <p className="font-normal text-[14px] sm:text-[16px] lg:text-[18px] leading-[17px] sm:leading-[19px] lg:leading-[22px] text-[#686767] text-center max-w-lg">
+                  Tell us your primary city to show you relevant workspaces
+                </p>
+              </div>
+
+              {/* Location Input and Popular Cities */}
+              <div className="flex flex-col items-center gap-6 sm:gap-8 lg:gap-10 w-full max-w-2xl">
+                {/* Location Input Field */}
+                <div className="w-full h-[62px] sm:h-[84px] bg-white border border-[#ACABAB] sm:border-[#D1D5DB] rounded-[8px] p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
+                  <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-[#6D6D6D] flex-shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Enter location or city"
+                    className="flex-1 text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px] text-[#6D6D6D] outline-none placeholder:text-[#6D6D6D]"
+                    value={customLocation}
+                    onChange={(e) => {
+                      setCustomLocation(e.target.value);
+                      setSelectedLocation(""); // Clear selected location when typing
+                    }}
+                  />
                 </div>
 
-                {/* Location Input and Popular Cities */}
-                <div className="w-[861px] h-[274px] flex flex-col items-center gap-10">
-                  {/* Location Input Field */}
-                  <div className="w-[861px] h-[84px] bg-white border border-[#D1D5DB] rounded-[8px] p-[11px_40px] flex items-center gap-[13px]">
-                    <div className="w-[483px] h-[24px] flex items-center gap-[263px]">
-                      <MapPin className="w-6 h-6 text-[#6D6D6D]" />
-                      <input
-                        type="text"
-                        placeholder="Enter location or city"
-                        className="flex-1 text-[20px] leading-[24px] text-[#6D6D6D] outline-none placeholder:text-[#6D6D6D]"
-                        value={customLocation}
-                        onChange={(e) => {
-                          setCustomLocation(e.target.value);
-                          setSelectedLocation(""); // Clear selected location when typing
-                        }}
-                      />
+                {/* Popular Cities Section */}
+                <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
+                  <h3 className="font-medium text-[14px] sm:text-[16px] lg:text-[18px] leading-[17px] sm:leading-[19px] lg:leading-[22px] text-[#686767] text-center">
+                    Popular Cities:
+                  </h3>
+
+                  {/* Cities Grid */}
+                  <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
+                    {/* First Row */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-5 w-full">
+                      {popularCities.slice(0, 4).map((city) => (
+                        <button
+                          key={city}
+                          onClick={() => selectLocation(city)}
+                          className={`px-3 sm:px-4 py-2 sm:py-3 rounded-[8px] transition-all duration-200 whitespace-nowrap ${
+                            selectedLocation === city
+                              ? "bg-[#002F5B] text-white"
+                              : "bg-[#F1F1F1] text-[#002F5B] hover:bg-[#E1E1E1]"
+                          }`}
+                        >
+                          <span className="font-normal text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px]">
+                            {city}
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                  </div>
 
-                  {/* Popular Cities Section */}
-                  <div className="w-[599px] h-[150px] flex flex-col items-center gap-3">
-                    <h3 className="w-[599px] h-[22px] font-semibold text-[18px] leading-[22px] text-[#686767] text-center">
-                      Popular Cities:
-                    </h3>
-
-                    {/* Cities Grid */}
-                    <div className="w-[599px] h-[116px] flex flex-col items-center gap-5">
-                      {/* First Row */}
-                      <div className="w-[599px] h-[48px] flex items-center gap-5">
-                        {popularCities.slice(0, 5).map((city) => (
-                          <button
-                            key={city}
-                            onClick={() => selectLocation(city)}
-                            className={`px-4 py-3 rounded-[8px] transition-all duration-200 ${
-                              selectedLocation === city
-                                ? "bg-[#002F5B] text-white"
-                                : "bg-[#F1F1F1] text-[#002F5B] hover:bg-[#E1E1E1]"
-                            }`}
-                          >
-                            <span className="font-normal text-[20px] leading-[24px]">
-                              {city}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Second Row */}
-                      <div className="w-[194px] h-[48px] flex items-center gap-5">
-                        {popularCities.slice(5).map((city) => (
-                          <button
-                            key={city}
-                            onClick={() => selectLocation(city)}
-                            className={`px-4 py-3 rounded-[8px] transition-all duration-200 ${
-                              selectedLocation === city
-                                ? "bg-[#002F5B] text-white"
-                                : "bg-[#F1F1F1] text-[#002F5B] hover:bg-[#E1E1E1]"
-                            }`}
-                          >
-                            <span className="font-normal text-[20px] leading-[24px]">
-                              {city}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
+                    {/* Second Row */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-5 w-full">
+                      {popularCities.slice(4).map((city) => (
+                        <button
+                          key={city}
+                          onClick={() => selectLocation(city)}
+                          className={`px-3 sm:px-4 py-2 sm:py-3 rounded-[8px] transition-all duration-200 whitespace-nowrap ${
+                            selectedLocation === city
+                              ? "bg-[#002F5B] text-white"
+                              : "bg-[#F1F1F1] text-[#002F5B] hover:bg-[#E1E1E1]"
+                          }`}
+                        >
+                          <span className="font-normal text-[14px] sm:text-[16px] lg:text-[20px] leading-[17px] sm:leading-[19px] lg:leading-[24px]">
+                            {city}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -476,25 +465,25 @@ export default function OnboardingPage() {
 
         {/* Step 4: Profile Picture Upload */}
         {currentStep === 4 && (
-          <div className="w-full h-[623px] bg-white rounded-[8px] relative">
+          <div className="w-full h-[443px] sm:h-[623px] bg-white rounded-[8px] p-8 sm:p-12 lg:p-16">
             {/* Content Container */}
-            <div className="absolute w-[318px] h-[358px] left-[calc(50%-318px/2)] top-[66px] flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-6 sm:gap-8 lg:gap-10 w-full h-full">
               {/* Main Content */}
-              <div className="w-[318px] h-[291px] flex flex-col items-center gap-[33px]">
+              <div className="flex flex-col items-center gap-6 sm:gap-8 lg:gap-[33px] w-full max-w-md">
                 {/* Section Title */}
-                <div className="w-[318px] h-[73px] flex flex-col items-center gap-2">
-                  <h2 className="w-[318px] h-[39px] font-bold text-[32px] leading-[39px] text-[#002F5B] text-center">
+                <div className="flex flex-col items-center gap-2 sm:gap-3 w-full">
+                  <h2 className="font-bold text-[18px] sm:text-[24px] lg:text-[32px] leading-[22px] sm:leading-[29px] lg:leading-[39px] text-[#002F5B] text-center">
                     Add a profile picture
                   </h2>
-                  <p className="w-[318px] h-[22px] font-normal text-[18px] leading-[22px] text-[#686767] text-center">
+                  <p className="font-normal text-[14px] sm:text-[16px] lg:text-[18px] leading-[17px] sm:leading-[19px] lg:leading-[22px] text-[#686767] text-center max-w-sm">
                     Help others recognise you (optional)
                   </p>
                 </div>
 
                 {/* Profile Picture Upload */}
-                <div className="w-[185px] h-[185px] flex flex-col items-center gap-6">
+                <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
                   {/* Profile Picture Placeholder */}
-                  <div className="w-[185px] h-[185px] bg-[#EAEAEA] rounded-[100px] flex items-center justify-center p-[60px]">
+                  <div className="w-[95px] h-[95px] sm:w-[120px] sm:h-[120px] lg:w-[185px] lg:h-[185px] bg-[#EAEAEA] rounded-[100px] flex items-center justify-center overflow-hidden">
                     {profilePicture ? (
                       <img
                         src={profilePicture}
@@ -502,38 +491,38 @@ export default function OnboardingPage() {
                         className="w-full h-full rounded-[100px] object-cover"
                       />
                     ) : (
-                      <Upload className="w-20 h-20 text-[#C4C7CB]" />
+                      <Upload className="w-8 h-8 sm:w-12 sm:h-12 lg:w-20 lg:h-20 text-[#C4C7CB]" />
                     )}
                   </div>
 
                   {/* Choose Picture Button */}
-                  <label className="w-[152px] h-[43px] bg-white border border-[#F25417] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#FFF3EE] transition-colors">
+                  <label className="w-[137px] h-[41px] sm:w-[152px] sm:h-[43px] bg-white border border-[#F25417] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#FFF3EE] transition-colors">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleFileUpload}
                       className="hidden"
                     />
-                    <span className="font-bold text-[16px] leading-[19px] text-[#F25417]">
+                    <span className="font-bold text-[14px] sm:text-[16px] leading-[17px] sm:leading-[19px] text-[#F25417]">
                       Choose Picture
                     </span>
                   </label>
                 </div>
               </div>
-            </div>
 
-            {/* Skip Instruction */}
-            <div className="absolute w-[583px] h-[22px] left-[calc(50%-583px/2)] top-[456.5px]">
-              <p className="font-normal text-[18px] leading-[22px] text-[#686767] text-center">
-                You can skip this step and add a profile photo later in your
-                settings
-              </p>
+              {/* Skip Instruction */}
+              <div className="flex justify-center w-full max-w-sm">
+                <p className="font-normal text-[12px] sm:text-[14px] lg:text-[18px] leading-[15px] sm:leading-[17px] lg:leading-[22px] text-[#686767] text-center">
+                  You can skip this step and add a profile photo later in your
+                  settings
+                </p>
+              </div>
             </div>
           </div>
         )}
 
         {/* Navigation */}
-        <div className="flex flex-row items-center gap-[994px] w-full h-[48px]">
+        <div className="flex flex-row items-center justify-between w-full h-[48px]">
           {/* Back Button */}
           <button
             onClick={handleBack}
@@ -557,7 +546,7 @@ export default function OnboardingPage() {
                 ? !selectedLocation && !customLocation
                 : false
             }
-            className={`flex flex-row justify-center items-center gap-2.5 px-4 py-3 rounded-[12px] transition-colors ${
+            className={`flex flex-row justify-center items-center gap-2.5 px-4 py-3 rounded-[8px] transition-colors w-[138px] ${
               (
                 currentStep === 1
                   ? selectedRole
@@ -572,7 +561,7 @@ export default function OnboardingPage() {
             }`}
           >
             <span className="font-bold text-[16px] leading-[19px]">
-              {currentStep === 4 ? "Complete Setup" : "Continue"}
+              Continue
             </span>
             <ArrowRight className="w-6 h-6" />
           </button>
