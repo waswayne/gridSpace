@@ -2,15 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Button from "../components/Button";
+import { useAppDispatch } from "@/store/hooks";
+import { signin } from "@/store/slices/authSlice";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="h-[1024px] max-lg:h-screen max-lg:p-4 bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]">
@@ -53,10 +60,26 @@ export default function SignInPage() {
 
             <form
               className="space-y-5"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 if (!email || !password) return;
-                // TODO: Submit form data
+                
+                try {
+                  setError(null);
+                  setIsSubmitting(true);
+                  
+                  const result = await dispatch(signin({
+                    email,
+                    password,
+                  })).unwrap();
+
+                  // If signin successful, redirect to dashboard
+                  router.push("/dashboard");
+                } catch (err: any) {
+                  setError(err?.message || "Failed to sign in. Please check your credentials and try again.");
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
             >
               {/* Email */}
@@ -136,14 +159,21 @@ export default function SignInPage() {
                 </Link>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="p-3 mb-4 text-sm text-red-500 bg-red-50 rounded">
+                  {error}
+                </div>
+              )}
+
               {/* Submit */}
               <Button
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={!email || !password}
+                disabled={!email || !password || isSubmitting}
               >
-                Sign In
+                {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
 
               {/* Divider */}

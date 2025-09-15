@@ -15,13 +15,20 @@ import {
   XCircle,
 } from "lucide-react";
 import Button from "../components/Button";
+import { useAppDispatch } from "@/store/hooks";
+import { signup } from "@/store/slices/authSlice";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [fullname, setFullname] = useState("");
+  const [email, setEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="h-[1024px] max-lg:h-fit max-lg:p-4 bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]">
@@ -66,8 +73,11 @@ export default function SignUpPage() {
 
             <form
               className="space-y-5"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
+                setError(null);
+
+                // Validate password
                 const rules = {
                   length: password.length >= 8,
                   upper: /[A-Z]/.test(password),
@@ -76,12 +86,29 @@ export default function SignUpPage() {
                 };
                 const passwordValid =
                   rules.length && rules.upper && rules.number && rules.special;
+                
+                // Validate phone
                 const digits = phone.replace(/\D/g, "");
                 const phoneValid = digits.length >= 10 && digits.length <= 15;
+
                 if (!passwordValid || !phoneValid || !agree) return;
-                // TODO: Submit form data
-                // Redirect to onboarding after successful signup
-                router.push("/onboarding");
+
+                try {
+                  setIsSubmitting(true);
+                  const result = await dispatch(signup({
+                    fullname,
+                    email,
+                    password,
+                    phonenumber: phone,
+                  })).unwrap();
+
+                  // If signup successful, redirect to onboarding
+                  router.push("/onboarding");
+                } catch (err: any) {
+                  setError(err?.message || "Failed to sign up. Please try again.");
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
             >
               {/* Full Name */}
@@ -95,6 +122,8 @@ export default function SignUpPage() {
                     type="text"
                     placeholder="Enter your full name"
                     className="flex-1 max-sm:w-[50%] outline-none placeholder:text-[#9CA3AF] text-[14px] md:text-[16px]"
+                    value={fullname}
+                    onChange={(e) => setFullname(e.target.value)}
                     required
                   />
                 </div>
@@ -111,6 +140,8 @@ export default function SignUpPage() {
                     type="email"
                     placeholder="Enter your email address"
                     className="flex-1 max-sm:w-[50%] outline-none placeholder:text-[#9CA3AF] text-[14px] md:text-[16px]"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
@@ -237,6 +268,11 @@ export default function SignUpPage() {
               </div>
 
               {/* Submit */}
+              {error && (
+                <div className="p-3 mb-4 text-sm text-red-500 bg-red-50 rounded">
+                  {error}
+                </div>
+              )}
               <Button
                 type="submit"
                 size="lg"
@@ -255,7 +291,7 @@ export default function SignUpPage() {
                     rules.special;
                   const digits = phone.replace(/\D/g, "");
                   const phoneValid = digits.length >= 10 && digits.length <= 15;
-                  return !passwordValid || !phoneValid || !agree;
+                  return !passwordValid || !phoneValid || !agree || isSubmitting;
                 })()}
               >
                 Sign Up

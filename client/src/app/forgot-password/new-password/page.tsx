@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import api from "@/services/api";
 
 export default function NewPasswordPage() {
   const [password, setPassword] = useState("");
@@ -12,6 +13,14 @@ export default function NewPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  // Check if we have a resetToken on mount
+  useEffect(() => {
+    const resetToken = localStorage.getItem("resetToken");
+    if (!resetToken) {
+      router.push("/forgot-password");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,18 +31,24 @@ export default function NewPasswordPage() {
       return;
     }
 
+    const resetToken = localStorage.getItem("resetToken");
+    if (!resetToken) {
+      alert("Reset token not found. Please request a new code.");
+      router.push("/forgot-password");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // TODO: Handle password reset API call
-      console.log("Setting new password:", password);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Redirect to success page after successful password reset
+      await api.resetPassword({ token: resetToken, password });
+      // Clear reset data from localStorage
+      localStorage.removeItem("resetToken");
+      localStorage.removeItem("resetEmail");
+      // Redirect to success page
       router.push("/forgot-password/success");
-    } catch (error) {
+    } catch (error: any) {
+      alert(error.message || "Failed to reset password. Please try again.");
       console.error("Error setting new password:", error);
     } finally {
       setIsSubmitting(false);

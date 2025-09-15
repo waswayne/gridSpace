@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { CheckCircle } from "lucide-react";
 
 export default function PasswordResetSuccessPage() {
+  // Cleanup any remaining reset data
+  useEffect(() => {
+    localStorage.removeItem("resetToken");
+    localStorage.removeItem("resetEmail");
+  }, []);
   return (
     <div className="min-h-screen bg-[#F7F5F5] flex items-center justify-center p-4">
       <div className="w-full max-w-[1240px] h-[950px] max-md:h-[810px] px-4 bg-white border border-[rgba(0,47,91,0.19)] rounded-lg shadow-[0_4px_4px_5px_rgba(231,230,230,0.25)] flex items-center justify-center">

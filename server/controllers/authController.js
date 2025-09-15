@@ -1,5 +1,8 @@
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const User = require("../models/User");
+const PasswordReset = require("../models/PasswordReset");
+const EmailVerification = require("../models/EmailVerification");
 const cloudinary = require("../config/cloudinary");
 
 // Helper function to generate JWT token
@@ -176,7 +179,465 @@ const signin = async (req, res) => {
   }
 };
 
+// Get current user profile
+const getProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).json({
+      success: true,
+      message: "Profile retrieved successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Update user profile
+const updateProfile = async (req, res) => {
+  try {
+    const { fullname, phonenumber } = req.body;
+    const userId = req.user._id;
+
+    // Validate required fields
+    if (!fullname && !phonenumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one field to update",
+      });
+    }
+
+    // Check if phone number is being updated and if it already exists
+    if (phonenumber && phonenumber !== req.user.phonenumber) {
+      const existingPhone = await User.findOne({
+        phonenumber,
+        _id: { $ne: userId },
+      });
+      if (existingPhone) {
+        return res.status(400).json({
+          success: false,
+          message: "Phone number already exists",
+        });
+      }
+    }
+
+    // Prepare update object
+    const updateData = {};
+    if (fullname) updateData.fullname = fullname.trim();
+    if (phonenumber) updateData.phonenumber = phonenumber.trim();
+
+    // Update profile picture if file exists
+    if (req.file) {
+      try {
+        const profilePicUrl = await uploadToCloudinary(req.file);
+        updateData.profilePic = profilePicUrl;
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload profile picture",
+        });
+      }
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Change password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    // Validate required fields
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide current password and new password",
+      });
+    }
+
+    // Validate new password length
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    // Get user with password
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Request password reset
+const requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email address",
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User with this email does not exist",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    // Save reset token to database
+    await PasswordReset.create({
+      email: email.toLowerCase(),
+      token: resetToken,
+      expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+    });
+
+    // In a real application, you would send an email here
+    // For now, we'll just return the token (remove this in production)
+    res.status(200).json({
+      success: true,
+      message: "Password reset token generated",
+      resetToken, // Remove this in production
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Reset password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    // Validate required fields
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide reset token and new password",
+      });
+    }
+
+    // Validate new password length
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    // Find valid reset token
+    const passwordReset = await PasswordReset.findOne({
+      token,
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!passwordReset) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: passwordReset.email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    // Mark token as used
+    passwordReset.used = true;
+    await passwordReset.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Request email verification
+const requestEmailVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email address",
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User with this email does not exist",
+      });
+    }
+
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    // Save verification token to database
+    await EmailVerification.create({
+      email: email.toLowerCase(),
+      token: verificationToken,
+      expiresAt: new Date(Date.now() + 86400000), // 24 hours from now
+    });
+
+    // In a real application, you would send an email here
+    // For now, we'll just return the token (remove this in production)
+    res.status(200).json({
+      success: true,
+      message: "Email verification token generated",
+      verificationToken, // Remove this in production
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Verify email
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Validate token
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide verification token",
+      });
+    }
+
+    // Find valid verification token
+    const emailVerification = await EmailVerification.findOne({
+      token,
+      verified: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!emailVerification) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: emailVerification.email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Mark email as verified
+    emailVerification.verified = true;
+    await emailVerification.save();
+
+    // Update user's emailVerified status
+    user.emailVerified = true;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Logout (client-side token removal)
+const logout = async (req, res) => {
+  try {
+    // In a stateless JWT system, logout is handled client-side
+    // You could implement a token blacklist here if needed
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Refresh token
+const refreshToken = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // Generate new token
+    const newToken = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully",
+      token: newToken,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Delete account
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { password } = req.body;
+
+    // Validate password
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide password to confirm account deletion",
+      });
+    }
+
+    // Get user with password
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect password",
+      });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   signup,
   signin,
+  getProfile,
+  updateProfile,
+  changePassword,
+  requestPasswordReset,
+  resetPassword,
+  requestEmailVerification,
+  verifyEmail,
+  logout,
+  refreshToken,
+  deleteAccount,
 };

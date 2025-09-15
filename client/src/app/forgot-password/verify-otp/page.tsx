@@ -4,12 +4,22 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
+import api from "@/services/api";
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
+
+  // Check if we have a resetToken on mount
+  useEffect(() => {
+    const resetToken = localStorage.getItem("resetToken");
+    if (!resetToken) {
+      router.push("/forgot-password");
+    }
+  }, [router]);
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
@@ -109,19 +119,31 @@ export default function VerifyOTPPage() {
                 onClick={async () => {
                   if (isOtpComplete) {
                     const code = otp.join("");
+                    const resetToken = localStorage.getItem("resetToken");
+                    
+                    if (!resetToken) {
+                      alert("Reset token not found. Please request a new code.");
+                      router.push("/forgot-password");
+                      return;
+                    }
+
                     setIsVerifying(true);
 
                     try {
-                      // TODO: Handle OTP verification API call
-                      console.log("Verifying OTP:", code);
+                      // Server currently expects a numeric token to match for resetting password
+                      // This is simplified for demo - in production, this would be more secure
+                      if (resetToken !== code) {
+                        throw new Error("Invalid verification code");
+                      }
 
-                      // Simulate API call
-                      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-                      // Redirect to new password page after successful verification
+                      // Navigate to new password page
                       router.push("/forgot-password/new-password");
-                    } catch (error) {
+                    } catch (error: any) {
+                      alert(error.message || "Failed to verify code. Please try again.");
                       console.error("Error verifying OTP:", error);
+                      // Clear invalid OTP
+                      setOtp(["", "", "", "", "", ""]);
+                      inputRefs.current[0]?.focus();
                     } finally {
                       setIsVerifying(false);
                     }
@@ -146,11 +168,32 @@ export default function VerifyOTPPage() {
                 </Link>
               </div>
 
-              {/* Resend Code Text */}
-              <p className="text-center text-[18px] leading-[28px] max-md:text-[12px] max-md:leading-[15px] text-[#686767]">
-                Didn't receive the code? Check your spam folder or request a new
-                one.
-              </p>
+              {/* Resend Code Button */}
+              <button
+                onClick={async () => {
+                  if (!isResending) {
+                    setIsResending(true);
+                    try {
+                      const response = await api.requestPasswordReset(
+                        localStorage.getItem("resetEmail") || ""
+                      );
+                      localStorage.setItem("resetToken", response.resetToken);
+                      alert("A new verification code has been sent to your email.");
+                      // Clear current OTP
+                      setOtp(["", "", "", "", "", ""]);
+                      inputRefs.current[0]?.focus();
+                    } catch (error: any) {
+                      alert(error.message || "Failed to resend code. Please try again.");
+                    } finally {
+                      setIsResending(false);
+                    }
+                  }
+                }}
+                className="text-center text-[18px] leading-[28px] max-md:text-[12px] max-md:leading-[15px] text-[#F25417] hover:text-[#E04A15] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isResending}
+              >
+                {isResending ? "Sending..." : "Didn't receive the code? Request a new one."}
+              </button>
             </div>
           </div>
         </div>

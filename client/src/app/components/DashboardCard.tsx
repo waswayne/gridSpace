@@ -1,0 +1,28 @@
+import { LucideIcon } from "lucide-react";
+
+interface DashboardCardProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  onClick?: () => void;
+}
+
+export default function DashboardCard({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: DashboardCardProps) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center p-[10px] gap-3 w-[293px] h-[171px] bg-white border border-[#D1D5DB] rounded-xl shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+      onClick={onClick}
+    >
+      <Icon className="w-10 h-10 text-[#002F5B]" />
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="text-[18px] font-bold text-[#002F5B]">{title}</h3>
+        <p className="text-[14px] text-[#686767] text-center">{description}</p>
+      </div>
+    </div>
+  );
+}

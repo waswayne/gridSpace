@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Mail } from "lucide-react";
+import api from "@/services/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  // Clear any existing reset data when component mounts
+  useEffect(() => {
+    localStorage.removeItem("resetToken");
+    localStorage.removeItem("resetEmail");
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,15 +24,14 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Handle forgot password API call
-      console.log("Sending reset code to:", email);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      const response = await api.requestPasswordReset(email);
+      // Store token and email for OTP verification and resending
+      localStorage.setItem("resetToken", response.resetToken);
+      localStorage.setItem("resetEmail", email);
       // Redirect to OTP verification page
       router.push("/forgot-password/verify-otp");
-    } catch (error) {
+    } catch (error: any) {
+      alert(error.message || "Failed to send reset code. Please try again.");
       console.error("Error sending reset code:", error);
     } finally {
       setIsSubmitting(false);
