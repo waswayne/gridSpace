@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F5] flex items-center justify-center p-4">
-      <div className="w-full max-w-[1240px] h-[950px] bg-white border border-[rgba(0,47,91,0.19)] rounded-lg shadow-[0_4px_4px_5px_rgba(231,230,230,0.25)] flex items-center justify-center">
+      <div className="w-full max-w-[1240px] h-[950px] bg-white px-4 border border-[rgba(0,47,91,0.19)] rounded-lg shadow-[0_4px_4px_5px_rgba(231,230,230,0.25)] flex items-center justify-center">
         <div className="w-full max-w-[532px] flex flex-col items-center gap-8">
           {/* Header Section */}
           <div className="flex flex-col items-center gap-2">
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
                 Email Address
               </label>
               <div className="flex items-center gap-3 h-[60px] px-3 border border-[#D1D5DB] rounded-lg bg-white">
-                <Mail className="w-6 h-6 text-[#9CA3AF]" />
+                <Mail className="w-6 min-w-6 h-6 min-h-6 text-[#9CA3AF]" />
                 <input
                   type="email"
                   placeholder="Enter your email address"

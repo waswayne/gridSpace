@@ -17,7 +17,7 @@ export default function HostDashboardPage() {
     <RouteGuard allowedRoles={["host"]}>
       <div className="min-h-screen bg-[#F7F5F5]">
         {/* Host Navigation */}
-        <div className="px-4 sm:px-6 md:px-8 lg:px-[101px] pt-4">
+        <div className="pt-4">
           <HostNav
             userName={userInfo.name}
             ratings={userInfo.ratings}
@@ -26,10 +26,10 @@ export default function HostDashboardPage() {
         </div>
 
         {/* Main Content */}
-        <div className="px-4 sm:px-6 md:px-8 lg:px-[101px] pb-8">
+        <div className="px-4 md:px-8 pb-8">
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* Sidebar */}
-            <div className="w-full lg:w-auto">
+            <div className="w-full bg-white lg:w-auto">
               <HostSidebar />
             </div>
 

@@ -17,7 +17,7 @@ const SidebarItem = ({
   onClick,
 }: SidebarItemProps) => (
   <button
-    className={`flex items-center px-4 sm:px-6 md:px-8 lg:px-10 py-2 sm:py-3 gap-2 sm:gap-3 w-full h-8 sm:h-10 rounded ${
+    className={`flex items-center px-4 py-2 sm:py-3 gap-2 sm:gap-3 w-full h-8 sm:h-10 rounded ${
       isActive ? "bg-[#F25417] text-white" : "text-[#121212] hover:bg-gray-50"
     }`}
     onClick={onClick}

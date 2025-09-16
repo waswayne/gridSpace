@@ -26,26 +26,25 @@ export default function RouteGuard({
   useEffect(() => {
     if (!isClient) return;
 
+    // Don't redirect if user is on the signin page
+    if (window.location.pathname === '/signin') return;
+
     // Check if user is authenticated
     if (!isAuthenticated) {
-      router.push("/signin");
+      router.replace("/signin");
       return;
     }
 
     // If roles are specified, check if user has required role
     if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role.toLowerCase())) {
       // Redirect to appropriate dashboard based on role
-      switch (user.role.toLowerCase()) {
-        case "admin":
-          router.push("/admin-dashboard");
-          break;
-        case "host":
-          router.push("/host-dashboard");
-          break;
-        default:
-          router.push("/dashboard");
-          break;
-      }
+      const dashboardPath = user.role.toLowerCase() === "admin" 
+        ? "/admin-dashboard"
+        : user.role.toLowerCase() === "host"
+        ? "/host-dashboard"
+        : "/dashboard";
+      
+      router.replace(dashboardPath);
     }
   }, [isClient, isAuthenticated, user, allowedRoles, router]);
 

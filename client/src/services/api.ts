@@ -53,27 +53,52 @@ class ApiService {
 
   // Helper method to handle responses
   private async handleResponse<T>(response: Response): Promise<T> {
+    let responseText: string;
+    
     try {
-      const data = await response.json();
+      // First get the raw text of the response
+      responseText = await response.text();
+      
+      // Try to parse it as JSON
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : null;
+      } catch (e) {
+        console.error('Failed to parse JSON response:', responseText);
+        throw new Error('Invalid response format from server');
+      }
+
+      // Log the response for debugging
       console.log('API Response:', {
         status: response.status,
-        data,
+        statusText: response.statusText,
         url: response.url,
+        data: data
       });
 
+      // Handle unsuccessful responses
       if (!response.ok) {
-        throw new Error(data.message || "An error occurred");
+        const errorMessage = data?.message || data?.error || responseText || 
+      `${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       return data as T;
-    } catch (error) {
+    } catch (error: any) {
+      // Log detailed error information
       console.error('API Error:', {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
-        error,
+        responseText: responseText,
+        error: error.message
       });
-      throw error;
+
+      // Throw a user-friendly error
+      if (!response.ok) {
+        throw new Error(error.message || 'Server error occurred');
+      }
+      throw new Error('Failed to process server response');
     }
   }
 
@@ -99,15 +124,32 @@ class ApiService {
   }
 
   async signin(credentials: SigninCredentials): Promise<ApiResponse> {
-    const response = await fetch(`${this.baseURL}/auth/signin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    });
+    try {
+      console.log('Signin request:', { 
+        url: `${this.baseURL}/auth/signin`,
+        email: credentials.email,
+        hasPassword: !!credentials.password 
+      });
 
-    return this.handleResponse(response);
+      const response = await fetch(`${this.baseURL}/auth/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      console.log('Raw signin response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+
+      return this.handleResponse(response);
+    } catch (networkError) {
+      console.error('Network error during signin:', networkError);
+      throw new Error('Failed to connect to the server. Please check your internet connection.');
+    }
   }
 
   async getProfile(): Promise<ApiResponse> {

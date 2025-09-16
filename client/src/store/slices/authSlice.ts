@@ -41,20 +41,14 @@ const getLocalStorageItem = (key: string): string | null => {
   return null;
 };
 
-// Function to initialize state
-const initializeState = (): AuthState => {
-  const token = getLocalStorageItem("authToken");
-  return {
-    user: null,
-    token,
-    isAuthenticated: !!token,
-    loading: !!token, // Start loading if we have a token
-    error: null,
-  };
-};
-
 // Initial state
-const initialState: AuthState = initializeState();
+const initialState: AuthState = {
+  user: null,
+  token: getLocalStorageItem("authToken"),
+  isAuthenticated: !!getLocalStorageItem("authToken"),
+  loading: false,
+  error: null,
+};
 
 interface SignupData {
   fullname: string;
@@ -250,7 +244,15 @@ const authSlice = createSlice({
       state.error = null;
       if (typeof window !== 'undefined') {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("reduxState");
       }
+    },
+    hydrate: (state, action: PayloadAction<AuthState>) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = !!action.payload.token;
+      state.loading = false;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -433,5 +435,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, clearAuth } = authSlice.actions;
+export const { clearError, clearAuth, hydrate } = authSlice.actions;
 export default authSlice.reducer;

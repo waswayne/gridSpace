@@ -45,7 +45,7 @@ export default function OnboardingPage() {
       if (profilePicture) {
         localStorage.setItem("userProfilePicture", profilePicture);
       }
-      router.push("/");
+      router.push("/signin");
     }
   };
 

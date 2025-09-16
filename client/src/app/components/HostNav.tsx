@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Filter, ArrowLeft } from "lucide-react";
+import { Search, Filter, ArrowLeft, Bell } from "lucide-react";
 
 interface HostNavProps {
   userName: string;
@@ -12,7 +12,7 @@ interface HostNavProps {
 export default function HostNav({ userName, ratings, bookings }: HostNavProps) {
   return (
     <div className="bg-white shadow-sm rounded-lg mb-6">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between px-4 sm:px-6 py-4 gap-4 lg:gap-0">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between px-4 lg:px-8 py-4 gap-4 lg:gap-0">
         {/* Left section with back button and title */}
         <div className="flex items-center gap-3 sm:gap-6">
           <button className="flex items-center justify-center w-6 h-6">
@@ -42,7 +42,12 @@ export default function HostNav({ userName, ratings, bookings }: HostNavProps) {
 
         {/* User profile section */}
         <div className="flex items-center gap-2 sm:gap-3 w-full lg:w-auto justify-center lg:justify-start">
-          <div className="w-6 h-6 sm:w-[28px] sm:h-[28px] border-2 border-[#121212] rounded-full"></div>
+          <button
+            className="w-6 h-6 sm:w-[28px] sm:h-[28px] flex items-center justify-center"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
+          </button>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="w-10 h-10 sm:w-[70px] sm:h-[70px] bg-gray-300 rounded-full"></div>

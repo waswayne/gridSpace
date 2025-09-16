@@ -76,7 +76,7 @@ export default function HostingWorkspace({ heroSrc = "/hosting.png" }: Props) {
           </div>
 
           {/* CTA Button */}
-          <Button variant="primary" size="lg" className="">
+          <Button variant="primary" size="lg" className="" href="/signup">
             Start Hosting Today
           </Button>
         </div>

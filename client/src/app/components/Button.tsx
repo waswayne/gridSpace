@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Link from "next/link";
 
 interface ButtonProps {
   children: ReactNode;
@@ -8,6 +9,7 @@ interface ButtonProps {
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
+  href?: string;
 }
 
 export default function Button({
@@ -18,6 +20,7 @@ export default function Button({
   onClick,
   type = "button",
   disabled = false,
+  href,
 }: ButtonProps) {
   const baseClasses =
     "font-bold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
@@ -42,6 +45,18 @@ export default function Button({
     : "cursor-pointer";
 
   const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`;
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={classes}
+        aria-disabled={disabled || undefined}
+      >
+        {children}
+      </Link>
+    );
+  }
 
   return (
     <button

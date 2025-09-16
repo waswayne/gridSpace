@@ -68,7 +68,7 @@ export default function HostListingCard({
   };
 
   return (
-    <div className="w-[294px] h-[316px] border border-[#D8D8D9] rounded-lg overflow-hidden">
+    <div className="w-[fit] xl:min-w-[294px] h-fit border border-[#D8D8D9] rounded-lg overflow-hidden">
       {/* Image section */}
       <div className="relative w-full h-[168px]">
         <Image

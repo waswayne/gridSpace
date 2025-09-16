@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Filter, ArrowLeft } from "lucide-react";
+import { Search, Filter, ArrowLeft, Bell } from "lucide-react";
 
 interface AdminNavProps {
   userName: string;
@@ -11,7 +11,7 @@ interface AdminNavProps {
 export default function AdminNav({ userName, adminSince }: AdminNavProps) {
   return (
     <div className="bg-white shadow-sm rounded-lg mb-6">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between px-4 sm:px-6 py-4 gap-4 lg:gap-0">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between px-4 py-4 gap-4 lg:gap-0">
         {/* Left section with back button and title */}
         <div className="flex items-center gap-3 sm:gap-6">
           <button className="flex items-center justify-center w-6 h-6">
@@ -41,7 +41,12 @@ export default function AdminNav({ userName, adminSince }: AdminNavProps) {
 
         {/* User profile section */}
         <div className="flex items-center gap-2 sm:gap-3 w-full lg:w-auto justify-center lg:justify-start">
-          <div className="w-6 h-6 sm:w-[28px] sm:h-[28px] border-2 border-[#121212] rounded-full"></div>
+          <button
+            className="w-6 h-6 sm:w-[28px] sm:h-[28px] flex items-center justify-center"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-[#121212]" />
+          </button>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="w-10 h-10 sm:w-[70px] sm:h-[70px] bg-gray-300 rounded-full"></div>
@@ -50,11 +55,6 @@ export default function AdminNav({ userName, adminSince }: AdminNavProps) {
                 <span className="text-sm sm:text-[16px] font-semibold text-[#002F5B]">
                   {userName}
                 </span>
-                <div className="flex items-center gap-1 px-2 py-1 bg-[#F25417] rounded-full">
-                  <span className="text-xs sm:text-[14px] text-white">
-                    Admin
-                  </span>
-                </div>
               </div>
               <span className="text-xs sm:text-[12px] text-[#686767]">
                 Admin since {adminSince}

@@ -67,33 +67,31 @@ export default function AdminMainContent() {
       </div>
 
       {/* Listings Table */}
-      <div className="w-full lg:w-[926px] h-auto lg:h-[425px] bg-white shadow-sm rounded-lg overflow-x-auto">
-        {/* Table Header */}
-        <div className="px-2 sm:px-4 py-4 sm:py-6 border-b border-[#D8D8D9]">
-          <div className="flex items-center gap-4 sm:gap-8 md:gap-16 lg:gap-[241px] w-full min-w-[600px] h-[22px]">
-            <span className="text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B] w-[100px] sm:w-[119px]">
-              Space Details
-            </span>
-            <span className="text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B] w-[60px] sm:w-[42px]">
-              Host
-            </span>
-            <span className="text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B] w-[80px] sm:w-[91px]">
-              Submitted
-            </span>
-            <span className="text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B] w-[60px] sm:w-[57px]">
-              Status
-            </span>
-            <span className="text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B] w-[60px] sm:w-[57px]">
-              Action
-            </span>
-          </div>
-        </div>
-
-        {/* Table Body */}
-        <div className="flex flex-col">
-          {listings.map((listing, index) => (
-            <div key={listing.id}>
+      <div className="w-full h-auto lg:h-[425px] bg-white shadow-sm rounded-lg overflow-x-auto">
+        <table className="min-w-[800px] w-full">
+          <thead>
+            <tr className="border-b border-[#D8D8D9]">
+              <th className="text-left px-4 py-4 text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B]">
+                Space Details
+              </th>
+              <th className="text-left px-4 py-4 text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B]">
+                Host
+              </th>
+              <th className="text-left px-4 py-4 text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B]">
+                Submitted
+              </th>
+              <th className="text-left px-4 py-4 text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B]">
+                Status
+              </th>
+              <th className="text-left px-4 py-4 text-sm sm:text-base lg:text-[18px] font-semibold text-[#002F5B]">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {listings.map((listing) => (
               <AdminListingRow
+                key={listing.id}
                 image={listing.image}
                 name={listing.name}
                 location={listing.location}
@@ -105,12 +103,9 @@ export default function AdminMainContent() {
                 onApprove={() => handleApprove(listing.id)}
                 onReject={() => handleReject(listing.id)}
               />
-              {index < listings.length - 1 && (
-                <div className="w-full h-[0.5px] bg-[#D8D8D9]"></div>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
