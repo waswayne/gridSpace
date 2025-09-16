@@ -51,6 +51,9 @@ export default function DashboardNav({
             <span className="text-xs sm:text-[12px] text-[#686767]">
               Member since {memberSince}
             </span>
+            <span className="text-xs sm:text-[12px] text-[#F25417] font-medium">
+              Wallet: {wallet}
+            </span>
           </div>
         </div>
       </div>

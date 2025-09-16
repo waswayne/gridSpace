@@ -8,7 +8,7 @@ import {
   Filter,
   Bell,
 } from "lucide-react";
-import { DashboardLayout, DashboardCard, WorkspaceCard } from "../components";
+import { DashboardCard, WorkspaceCard } from "../components";
 import RouteGuard from "../middleware/RouteGuard";
 import { useAppSelector } from "@/store/hooks";
 import Image from "next/image";

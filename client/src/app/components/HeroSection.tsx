@@ -35,7 +35,7 @@ export default function HeroSection() {
               <div className="flex items-center gap-2 px-3 py-2 border border-[var(--color-secondary)] rounded-lg w-full sm:w-1/2">
                 <Calendar className="w-6 h-6 text-gray-400" />
                 <input
-                  type="text"
+                  type="date"
                   placeholder="dd/mm/yy"
                   className="w-full text-sm text-gray-500 outline-none"
                 />

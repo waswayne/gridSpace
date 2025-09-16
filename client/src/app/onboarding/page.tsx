@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
@@ -485,9 +486,11 @@ export default function OnboardingPage() {
                   {/* Profile Picture Placeholder */}
                   <div className="w-[95px] h-[95px] sm:w-[120px] sm:h-[120px] lg:w-[185px] lg:h-[185px] bg-[#EAEAEA] rounded-[100px] flex items-center justify-center overflow-hidden">
                     {profilePicture ? (
-                      <img
+                      <Image
                         src={profilePicture}
                         alt="Profile"
+                        width={185}
+                        height={185}
                         className="w-full h-full rounded-[100px] object-cover"
                       />
                     ) : (

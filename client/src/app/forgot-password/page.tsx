@@ -30,8 +30,9 @@ export default function ForgotPasswordPage() {
       localStorage.setItem("resetEmail", email);
       // Redirect to OTP verification page
       router.push("/forgot-password/verify-otp");
-    } catch (error: any) {
-      alert(error.message || "Failed to send reset code. Please try again.");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to send reset code. Please try again.";
+      alert(errorMessage);
       console.error("Error sending reset code:", error);
     } finally {
       setIsSubmitting(false);
@@ -48,7 +49,7 @@ export default function ForgotPasswordPage() {
               Forgot Password?
             </h1>
             <p className="text-[18px] leading-[24px] text-[#686767] text-center tracking-[0.5px] max-w-[472px]">
-              Enter your email address below. We'll send you a verification code
+              Enter your email address below. We&apos;ll send you a verification code
               to reset your password
             </p>
           </div>

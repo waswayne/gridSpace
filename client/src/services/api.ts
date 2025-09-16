@@ -27,13 +27,13 @@ interface ResetData {
   password: string;
 }
 
-interface ApiResponse<T = any> {
-  message?: string;
-  [key: string]: any;
-}
+type ApiResponse<T = unknown> = { message?: string } & {
+  [key: string]: unknown;
+} & T;
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://gridspace-server.onrender.com/api";
 
 class ApiService {
   private baseURL: string;
@@ -53,60 +53,65 @@ class ApiService {
 
   // Helper method to handle responses
   private async handleResponse<T>(response: Response): Promise<T> {
-    let responseText: string;
-    
+    let responseText: string = "";
+
     try {
       // First get the raw text of the response
       responseText = await response.text();
-      
+
       // Try to parse it as JSON
       let data;
       try {
         data = responseText ? JSON.parse(responseText) : null;
-      } catch (e) {
-        console.error('Failed to parse JSON response:', responseText);
-        throw new Error('Invalid response format from server');
+      } catch {
+        console.error("Failed to parse JSON response:", responseText);
+        throw new Error("Invalid response format from server");
       }
 
       // Log the response for debugging
-      console.log('API Response:', {
+      console.log("API Response:", {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
-        data: data
+        data: data,
       });
 
       // Handle unsuccessful responses
       if (!response.ok) {
-        const errorMessage = data?.message || data?.error || responseText || 
-      `${response.status} ${response.statusText}`;
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          responseText ||
+          `${response.status} ${response.statusText}`;
         throw new Error(errorMessage);
       }
 
       return data as T;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log detailed error information
-      console.error('API Error:', {
+      console.error("API Error:", {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
         responseText: responseText,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error),
       });
 
       // Throw a user-friendly error
       if (!response.ok) {
-        throw new Error(error.message || 'Server error occurred');
+        const message =
+          error instanceof Error ? error.message : "Server error occurred";
+        throw new Error(message);
       }
-      throw new Error('Failed to process server response');
+      throw new Error("Failed to process server response");
     }
   }
 
   // Auth endpoints
   async signup(userData: SignupData): Promise<ApiResponse> {
-    console.log('Signup request:', { ...userData, password: '***' });
-    console.log('API URL:', `${this.baseURL}/auth/signup`);
-    
+    console.log("Signup request:", { ...userData, password: "***" });
+    console.log("API URL:", `${this.baseURL}/auth/signup`);
+
     const response = await fetch(`${this.baseURL}/auth/signup`, {
       method: "POST",
       headers: {
@@ -125,10 +130,10 @@ class ApiService {
 
   async signin(credentials: SigninCredentials): Promise<ApiResponse> {
     try {
-      console.log('Signin request:', { 
+      console.log("Signin request:", {
         url: `${this.baseURL}/auth/signin`,
         email: credentials.email,
-        hasPassword: !!credentials.password 
+        hasPassword: !!credentials.password,
       });
 
       const response = await fetch(`${this.baseURL}/auth/signin`, {
@@ -139,7 +144,7 @@ class ApiService {
         body: JSON.stringify(credentials),
       });
 
-      console.log('Raw signin response:', {
+      console.log("Raw signin response:", {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries()),
@@ -147,8 +152,10 @@ class ApiService {
 
       return this.handleResponse(response);
     } catch (networkError) {
-      console.error('Network error during signin:', networkError);
-      throw new Error('Failed to connect to the server. Please check your internet connection.');
+      console.error("Network error during signin:", networkError);
+      throw new Error(
+        "Failed to connect to the server. Please check your internet connection."
+      );
     }
   }
 
@@ -193,7 +200,9 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async requestPasswordReset(email: string): Promise<ApiResponse> {
+  async requestPasswordReset(
+    email: string
+  ): Promise<ApiResponse<{ resetToken: string }>> {
     const response = await fetch(
       `${this.baseURL}/auth/request-password-reset`,
       {
@@ -276,4 +285,5 @@ class ApiService {
   }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;

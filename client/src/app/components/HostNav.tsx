@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Search, Filter, ArrowLeft, Bell } from "lucide-react";
 
 interface HostNavProps {

@@ -140,11 +140,12 @@ export default function VerifyOTPPage() {
 
                       // Navigate to new password page
                       router.push("/forgot-password/new-password");
-                    } catch (error: any) {
-                      alert(
-                        error.message ||
-                          "Failed to verify code. Please try again."
-                      );
+                    } catch (error: unknown) {
+                      const errorMessage =
+                        error instanceof Error
+                          ? error.message
+                          : "Failed to verify code. Please try again.";
+                      alert(errorMessage);
                       console.error("Error verifying OTP:", error);
                       // Clear invalid OTP
                       setOtp(["", "", "", "", "", ""]);
@@ -189,11 +190,12 @@ export default function VerifyOTPPage() {
                       // Clear current OTP
                       setOtp(["", "", "", "", "", ""]);
                       inputRefs.current[0]?.focus();
-                    } catch (error: any) {
-                      alert(
-                        error.message ||
-                          "Failed to resend code. Please try again."
-                      );
+                    } catch (error: unknown) {
+                      const errorMessage =
+                        error instanceof Error
+                          ? error.message
+                          : "Failed to resend code. Please try again.";
+                      alert(errorMessage);
                     } finally {
                       setIsResending(false);
                     }

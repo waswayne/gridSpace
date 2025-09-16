@@ -2,15 +2,20 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import apiService from "../../services/api";
 
 interface User {
-  id: string;
+  id?: string;
+  _id?: string;
   email: string;
   name?: string;
+  fullname?: string;
   role: string;
-  isVerified: boolean;
-  [key: string]: any;
+  isVerified?: boolean;
+  emailVerified?: boolean;
+  profilePic?: string;
+  createdAt?: string | number | Date;
+  [key: string]: unknown;
 }
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -33,9 +38,31 @@ interface ResetData {
   password: string;
 }
 
+// Type guards
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const isAuthResponse = (value: unknown): value is AuthResponse => {
+  if (!isRecord(value)) return false;
+  const maybeUser = value.user;
+  const maybeToken = value.token;
+  return (
+    typeof maybeToken === "string" &&
+    isRecord(maybeUser) &&
+    (typeof maybeUser.id === "string" || typeof maybeUser._id === "string") &&
+    typeof maybeUser.email === "string" &&
+    typeof maybeUser.role === "string" &&
+    (typeof maybeUser.isVerified === "boolean" ||
+      typeof maybeUser.emailVerified === "boolean" ||
+      typeof maybeUser.isVerified === "undefined" ||
+      typeof maybeUser.emailVerified === "undefined")
+  );
+};
+
 // Helper function to safely access localStorage
 const getLocalStorageItem = (key: string): string | null => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     return localStorage.getItem(key);
   }
   return null;
@@ -64,27 +91,40 @@ export const signup = createAsyncThunk(
   async (userData: SignupData, { rejectWithValue }) => {
     try {
       const response = await apiService.signup(userData);
-      if (typeof window !== 'undefined') {
+      if (!isAuthResponse(response)) {
+        throw new Error("Invalid response from server");
+      }
+      if (typeof window !== "undefined") {
         localStorage.setItem("authToken", response.token);
       }
-      return response as AuthResponse;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return response;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
 
 export const signin = createAsyncThunk(
   "auth/signin",
-  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+  async (
+    credentials: { email: string; password: string },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await apiService.signin(credentials);
-      if (typeof window !== 'undefined') {
+      if (!isAuthResponse(response)) {
+        throw new Error("Invalid response from server");
+      }
+      if (typeof window !== "undefined") {
         localStorage.setItem("authToken", response.token);
       }
-      return response as AuthResponse;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return response;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -95,8 +135,10 @@ export const getProfile = createAsyncThunk(
     try {
       const response = await apiService.getProfile();
       return response as { user: User };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -113,8 +155,10 @@ export const updateProfile = createAsyncThunk(
     try {
       const response = await apiService.updateProfile(profileData);
       return response as { user: User };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -125,8 +169,10 @@ export const changePassword = createAsyncThunk(
     try {
       const response = await apiService.changePassword(passwordData);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -137,8 +183,10 @@ export const requestPasswordReset = createAsyncThunk(
     try {
       const response = await apiService.requestPasswordReset(email);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -149,8 +197,10 @@ export const resetPassword = createAsyncThunk(
     try {
       const response = await apiService.resetPassword(resetData);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -161,8 +211,10 @@ export const requestEmailVerification = createAsyncThunk(
     try {
       const response = await apiService.requestEmailVerification(email);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -173,8 +225,10 @@ export const verifyEmail = createAsyncThunk(
     try {
       const response = await apiService.verifyEmail(token);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -184,12 +238,17 @@ export const refreshToken = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.refreshToken();
-      if (typeof window !== 'undefined') {
+      if (!isAuthResponse(response)) {
+        throw new Error("Invalid response from server");
+      }
+      if (typeof window !== "undefined") {
         localStorage.setItem("authToken", response.token);
       }
-      return response as AuthResponse;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return response;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -199,16 +258,18 @@ export const logout = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await apiService.logout();
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem("authToken");
       }
       return null;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Even if logout fails on server, clear local storage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem("authToken");
       }
-      return rejectWithValue(error.message);
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -218,12 +279,14 @@ export const deleteAccount = createAsyncThunk(
   async (password: string, { rejectWithValue }) => {
     try {
       const response = await apiService.deleteAccount(password);
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem("authToken");
       }
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
     }
   }
 );
@@ -242,7 +305,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem("authToken");
         localStorage.removeItem("reduxState");
       }
@@ -262,13 +325,16 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(signup.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
+      .addCase(
+        signup.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.isAuthenticated = true;
+          state.error = null;
+        }
+      )
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -278,13 +344,16 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(signin.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
+      .addCase(
+        signin.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.isAuthenticated = true;
+          state.error = null;
+        }
+      )
       .addCase(signin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -294,11 +363,14 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getProfile.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.error = null;
-      })
+      .addCase(
+        getProfile.fulfilled,
+        (state, action: PayloadAction<{ user: User }>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.error = null;
+        }
+      )
       .addCase(getProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -308,11 +380,14 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateProfile.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.error = null;
-      })
+      .addCase(
+        updateProfile.fulfilled,
+        (state, action: PayloadAction<{ user: User }>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.error = null;
+        }
+      )
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -387,12 +462,15 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(refreshToken.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.error = null;
-      })
+      .addCase(
+        refreshToken.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.error = null;
+        }
+      )
       .addCase(refreshToken.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;

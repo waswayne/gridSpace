@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff } from "lucide-react";
@@ -47,8 +46,9 @@ export default function NewPasswordPage() {
       localStorage.removeItem("resetEmail");
       // Redirect to success page
       router.push("/forgot-password/success");
-    } catch (error: any) {
-      alert(error.message || "Failed to reset password. Please try again.");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to reset password. Please try again.";
+      alert(errorMessage);
       console.error("Error setting new password:", error);
     } finally {
       setIsSubmitting(false);

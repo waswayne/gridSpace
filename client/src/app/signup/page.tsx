@@ -86,7 +86,7 @@ export default function SignUpPage() {
                 };
                 const passwordValid =
                   rules.length && rules.upper && rules.number && rules.special;
-                
+
                 // Validate phone
                 const digits = phone.replace(/\D/g, "");
                 const phoneValid = digits.length >= 10 && digits.length <= 15;
@@ -95,17 +95,23 @@ export default function SignUpPage() {
 
                 try {
                   setIsSubmitting(true);
-                  const result = await dispatch(signup({
-                    fullname,
-                    email,
-                    password,
-                    phonenumber: phone,
-                  })).unwrap();
+                  await dispatch(
+                    signup({
+                      fullname,
+                      email,
+                      password,
+                      phonenumber: phone,
+                    })
+                  ).unwrap();
 
                   // If signup successful, redirect to onboarding
                   router.push("/onboarding");
-                } catch (err: any) {
-                  setError(err?.message || "Failed to sign up. Please try again.");
+                } catch (err: unknown) {
+                  const message =
+                    err instanceof Error
+                      ? err.message
+                      : "Failed to sign up. Please try again.";
+                  setError(message);
                 } finally {
                   setIsSubmitting(false);
                 }
@@ -291,7 +297,9 @@ export default function SignUpPage() {
                     rules.special;
                   const digits = phone.replace(/\D/g, "");
                   const phoneValid = digits.length >= 10 && digits.length <= 15;
-                  return !passwordValid || !phoneValid || !agree || isSubmitting;
+                  return (
+                    !passwordValid || !phoneValid || !agree || isSubmitting
+                  );
                 })()}
               >
                 Sign Up

@@ -63,20 +63,26 @@ export default function SignInPage() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (!email || !password) return;
-                
+
                 try {
                   setError(null);
                   setIsSubmitting(true);
-                  
-                  const result = await dispatch(signin({
-                    email,
-                    password,
-                  })).unwrap();
+
+                  await dispatch(
+                    signin({
+                      email,
+                      password,
+                    })
+                  ).unwrap();
 
                   // If signin successful, redirect to dashboard
                   router.push("/dashboard");
-                } catch (err: any) {
-                  setError(err?.message || "Failed to sign in. Please check your credentials and try again.");
+                } catch (err: unknown) {
+                  const message =
+                    err instanceof Error
+                      ? err.message
+                      : "Failed to sign in. Please check your credentials and try again.";
+                  setError(message);
                 } finally {
                   setIsSubmitting(false);
                 }

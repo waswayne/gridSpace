@@ -27,26 +27,31 @@ export default function RouteGuard({
     if (!isClient) return;
 
     // Don't redirect if user is on the signin page
-    if (window.location.pathname === '/signin') return;
+    if (window.location.pathname === "/signin") return;
 
     // Check if user is authenticated
     if (!isAuthenticated) {
-      router.replace("/signin");
+      router.replace(redirectTo);
       return;
     }
 
     // If roles are specified, check if user has required role
-    if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role.toLowerCase())) {
+    if (
+      allowedRoles.length > 0 &&
+      user &&
+      !allowedRoles.includes(user.role.toLowerCase())
+    ) {
       // Redirect to appropriate dashboard based on role
-      const dashboardPath = user.role.toLowerCase() === "admin" 
-        ? "/admin-dashboard"
-        : user.role.toLowerCase() === "host"
-        ? "/host-dashboard"
-        : "/dashboard";
-      
+      const dashboardPath =
+        user.role.toLowerCase() === "admin"
+          ? "/admin-dashboard"
+          : user.role.toLowerCase() === "host"
+          ? "/host-dashboard"
+          : "/dashboard";
+
       router.replace(dashboardPath);
     }
-  }, [isClient, isAuthenticated, user, allowedRoles, router]);
+  }, [isClient, isAuthenticated, user, allowedRoles, router, redirectTo]);
 
   // Don't render anything until we're on the client
   if (!isClient) {
@@ -54,7 +59,12 @@ export default function RouteGuard({
   }
 
   // Show nothing while checking auth
-  if (!isAuthenticated || (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role.toLowerCase()))) {
+  if (
+    !isAuthenticated ||
+    (allowedRoles.length > 0 &&
+      user &&
+      !allowedRoles.includes(user.role.toLowerCase()))
+  ) {
     return null;
   }
 
