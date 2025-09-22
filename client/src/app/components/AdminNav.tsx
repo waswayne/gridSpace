@@ -1,13 +1,15 @@
 "use client";
 
 import { Search, Filter, ArrowLeft, Bell } from "lucide-react";
+import Image from "next/image";
 
 interface AdminNavProps {
   userName: string;
   adminSince: string;
+  profilePic?: string;
 }
 
-export default function AdminNav({ userName, adminSince }: AdminNavProps) {
+export default function AdminNav({ userName, adminSince, profilePic }: AdminNavProps) {
   return (
     <div className="bg-white shadow-sm rounded-lg mb-6">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between px-4 py-4 gap-4 lg:gap-0">
@@ -48,7 +50,23 @@ export default function AdminNav({ userName, adminSince }: AdminNavProps) {
           </button>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <div className="w-10 h-10 sm:w-[70px] sm:h-[70px] bg-gray-300 rounded-full"></div>
+            <div className="w-10 h-10 sm:w-[70px] sm:h-[70px] bg-gray-300 rounded-full overflow-hidden">
+              {profilePic ? (
+                <Image
+                  src={profilePic}
+                  alt={`${userName}'s profile`}
+                  width={70}
+                  height={70}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
+                  <span className="text-gray-500 text-sm font-medium">
+                    {userName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex flex-col">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                 <span className="text-sm sm:text-[16px] font-semibold text-[#002F5B]">

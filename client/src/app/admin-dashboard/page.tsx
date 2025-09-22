@@ -18,7 +18,7 @@ export default function AdminDashboardPage() {
     <RouteGuard allowedRoles={["admin"]}>
       <div className="min-h-screen bg-[#F7F5F5]">
         {/* Navigation */}
-        <AdminNav userName={userInfo.name} adminSince={userInfo.adminSince} />
+        <AdminNav userName={userInfo.name} adminSince={userInfo.adminSince} profilePic={userInfo.avatar} />
 
         {/* Main Content */}
         <div className="flex flex-col justify-center lg:flex-row gap-4 lg:gap-6 px-4">

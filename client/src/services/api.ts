@@ -17,6 +17,13 @@ interface ProfileData {
   profilePic?: File;
 }
 
+interface OnboardingData {
+  role: string;
+  purposes?: string[];
+  location?: string;
+  profilePic?: File;
+}
+
 interface PasswordData {
   oldPassword: string;
   newPassword: string;
@@ -27,13 +34,19 @@ interface ResetData {
   password: string;
 }
 
+interface GoogleAuthData {
+  idToken: string;
+}
+
 type ApiResponse<T = unknown> = { message?: string } & {
   [key: string]: unknown;
 } & T;
 
+// const API_BASE_URL =
+//   process.env.NEXT_PUBLIC_API_URL ||
+//   "https://gridspace-server.onrender.com/api";
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://gridspace-server.onrender.com/api";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 class ApiService {
   private baseURL: string;
@@ -190,6 +203,35 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async completeOnboarding(
+    onboardingData: OnboardingData
+  ): Promise<ApiResponse> {
+    const formData = new FormData();
+
+    formData.append("role", onboardingData.role);
+    if (onboardingData.purposes) {
+      formData.append("purposes", JSON.stringify(onboardingData.purposes));
+    }
+    if (onboardingData.location) {
+      formData.append("location", onboardingData.location);
+    }
+    if (onboardingData.profilePic) {
+      formData.append("profilePic", onboardingData.profilePic);
+    }
+
+    const response = await fetch(`${this.baseURL}/auth/onboarding`, {
+      method: "POST",
+      headers: {
+        ...(localStorage.getItem("authToken") && {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        }),
+      },
+      body: formData,
+    });
+
+    return this.handleResponse(response);
+  }
+
   async changePassword(passwordData: PasswordData): Promise<ApiResponse> {
     const response = await fetch(`${this.baseURL}/auth/change-password`, {
       method: "PUT",
@@ -279,6 +321,32 @@ class ApiService {
       method: "DELETE",
       headers: this.getAuthHeaders(),
       body: JSON.stringify({ password }),
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // Google OAuth endpoints
+  async googleAuth(googleData: GoogleAuthData): Promise<ApiResponse> {
+    console.log("Google Auth request:", {
+      url: `${this.baseURL}/auth/google`,
+      hasIdToken: !!googleData.idToken,
+    });
+
+    const response = await fetch(`${this.baseURL}/auth/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(googleData),
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getGoogleAuthUrl(): Promise<ApiResponse<{ authUrl: string }>> {
+    const response = await fetch(`${this.baseURL}/auth/google/url`, {
+      method: "GET",
     });
 
     return this.handleResponse(response);

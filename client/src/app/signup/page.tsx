@@ -17,6 +17,7 @@ import {
 import Button from "../components/Button";
 import { useAppDispatch } from "@/store/hooks";
 import { signup } from "@/store/slices/authSlice";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -122,7 +123,7 @@ export default function SignUpPage() {
                 <label className="text-[16px] md:text-[18px] font-medium">
                   Full Name
                 </label>
-                <div className="flex items-center gap-3 h-[56px] sm:h-[60px] px-3 border border-[var(--color-border)] rounded-lg bg-white">
+                <div className="flex items-center gap-3 h-[56px] sm:h-[60px] px-3 border border-gray-300 focus-within:border-black rounded-lg bg-white transition-colors duration-200">
                   <User className="w-5 h-5 text-[#9CA3AF]" />
                   <input
                     type="text"
@@ -140,7 +141,7 @@ export default function SignUpPage() {
                 <label className="text-[16px] md:text-[18px] font-medium">
                   Email Address
                 </label>
-                <div className="flex items-center gap-3 h-[56px] sm:h-[60px] px-3 border border-[var(--color-border)] rounded-lg bg-white">
+                <div className="flex items-center gap-3 h-[56px] sm:h-[60px] px-3 border border-gray-300 focus-within:border-black rounded-lg bg-white transition-colors duration-200">
                   <Mail className="w-5 h-5 text-[#9CA3AF]" />
                   <input
                     type="email"
@@ -158,7 +159,7 @@ export default function SignUpPage() {
                 <label className="text-[16px] md:text-[18px] font-medium">
                   Phone Number
                 </label>
-                <div className="flex items-center gap-3 h-[56px] sm:h-[60px] px-3 border border-[var(--color-border)] rounded-lg bg-white">
+                <div className="flex items-center gap-3 h-[56px] sm:h-[60px] px-3 border border-gray-300 focus-within:border-black rounded-lg bg-white transition-colors duration-200">
                   <Phone className="w-5 h-5 text-[#9CA3AF]" />
                   <input
                     type="tel"
@@ -183,7 +184,7 @@ export default function SignUpPage() {
                 <label className="text-[16px] md:text-[18px] font-medium">
                   Password
                 </label>
-                <div className="flex items-center justify-between gap-3 h-[56px] sm:h-[60px] px-3 border border-[#9CA3AF] rounded-lg bg-white">
+                <div className="flex items-center justify-between gap-3 h-[56px] sm:h-[60px] px-3 border border-gray-300 focus-within:border-black rounded-lg bg-white transition-colors duration-200">
                   <div className="flex items-center gap-3 flex-1">
                     <Lock className="w-5 h-5 text-[#9CA3AF]" />
                     <input
@@ -313,17 +314,13 @@ export default function SignUpPage() {
               </div>
 
               {/* Social buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <button className="h-[56px] sm:h-[60px] rounded-lg border border-[var(--color-secondary)] flex items-center justify-center gap-2">
-                  <Image
-                    src="/google.png"
-                    alt="Google"
-                    width={22}
-                    height={22}
-                  />
-                  <span className="text-[16px]">Google</span>
-                </button>
-                <button className="h-[56px] sm:h-[60px] rounded-lg border border-[var(--color-secondary)] flex items-center justify-center gap-2">
+              <div className="flex flex-col lg:flex-row gap-3">
+                <GoogleAuthButton
+                  text="Continue with Google"
+                  className="flex-1"
+                  onError={(error) => setError(error)}
+                />
+                <button className="flex-1 h-[56px] sm:h-[60px] px-4 py-3 rounded-lg border border-[var(--color-secondary)] flex items-center justify-center gap-2 transition-all duration-300 hover:bg-gray-100 hover:text-[var(--color-secondary)] hover:shadow-sm">
                   <Image
                     src="/facebook.png"
                     alt="Facebook"
@@ -332,7 +329,7 @@ export default function SignUpPage() {
                   />
                   <span className="text-[16px]">Facebook</span>
                 </button>
-                <button className="h-[56px] sm:h-[60px] rounded-lg border border-[var(--color-secondary)] flex items-center justify-center gap-2">
+                <button className="flex-1 h-[56px] sm:h-[60px] px-4 py-3 rounded-lg border border-[var(--color-secondary)] flex items-center justify-center gap-2 transition-all duration-300 hover:bg-gray-100 hover:text-[var(--color-secondary)] hover:shadow-sm">
                   <Image src="/apple.png" alt="Apple" width={30} height={30} />
                   <span className="text-[16px]">Apple</span>
                 </button>

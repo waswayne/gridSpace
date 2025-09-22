@@ -15,7 +15,7 @@ export default function DashboardCard({
 }: DashboardCardProps) {
   return (
     <div
-      className="flex flex-col items-center justify-center p-[10px] gap-3 w-[293px] h-[171px] bg-white border-[0.5px] border-[#D1D5DB] rounded-xl shadow-[0px_4px_4px_rgba(222,222,222,0.25)] cursor-pointer hover:shadow-[0px_6px_6px_rgba(222,222,222,0.35)] transition-shadow"
+      className="flex flex-col items-center justify-center p-[10px] gap-3 h-[171px] bg-white border-[0.5px] border-[#D1D5DB] rounded-xl shadow-[0px_4px_4px_rgba(222,222,222,0.25)] cursor-pointer hover:shadow-[0px_6px_6px_rgba(222,222,222,0.35)] transition-shadow"
       onClick={onClick}
     >
       <Icon className="w-10 h-10 text-[#002F5B]" />

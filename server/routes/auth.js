@@ -5,6 +5,7 @@ const {
   signin,
   getProfile,
   updateProfile,
+  completeOnboarding,
   changePassword,
   requestPasswordReset,
   resetPassword,
@@ -13,6 +14,9 @@ const {
   logout,
   refreshToken,
   deleteAccount,
+  googleAuth,
+  getGoogleAuthUrlController,
+  googleCallback,
 } = require("../controllers/authController");
 const { authenticate } = require("../middleware/auth");
 const upload = require("../config/multer");
@@ -25,6 +29,11 @@ router.post("/reset-password", resetPassword);
 router.post("/request-email-verification", requestEmailVerification);
 router.post("/verify-email", verifyEmail);
 
+// Google OAuth routes
+router.post("/google", googleAuth);
+router.get("/google/url", getGoogleAuthUrlController);
+router.get("/google/callback", googleCallback);
+
 // Protected routes (authentication required)
 router.get("/profile", authenticate, getProfile);
 router.put(
@@ -32,6 +41,12 @@ router.put(
   authenticate,
   upload.single("profilePic"),
   updateProfile
+);
+router.post(
+  "/onboarding",
+  authenticate,
+  upload.single("profilePic"),
+  completeOnboarding
 );
 router.put("/change-password", authenticate, changePassword);
 router.post("/logout", authenticate, logout);

@@ -11,6 +11,11 @@ interface User {
   isVerified?: boolean;
   emailVerified?: boolean;
   profilePic?: string;
+  authProvider?: 'local' | 'google';
+  googleId?: string;
+  onboardingCompleted?: boolean;
+  purposes?: string[];
+  location?: string;
   createdAt?: string | number | Date;
   [key: string]: unknown;
 }
@@ -85,6 +90,17 @@ interface SignupData {
   profilePic?: File;
 }
 
+interface OnboardingData {
+  role: string;
+  purposes?: string[];
+  location?: string;
+  profilePic?: File;
+}
+
+interface GoogleAuthData {
+  idToken: string;
+}
+
 // Async thunks
 export const signup = createAsyncThunk(
   "auth/signup",
@@ -129,11 +145,45 @@ export const signin = createAsyncThunk(
   }
 );
 
+export const googleAuth = createAsyncThunk(
+  "auth/googleAuth",
+  async (googleData: GoogleAuthData, { rejectWithValue }) => {
+    try {
+      const response = await apiService.googleAuth(googleData);
+      if (!isAuthResponse(response)) {
+        throw new Error("Invalid response from server");
+      }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("authToken", response.token);
+      }
+      return response;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Google authentication failed";
+      return rejectWithValue(message);
+    }
+  }
+);
+
 export const getProfile = createAsyncThunk(
   "auth/getProfile",
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getProfile();
+      return response as { user: User };
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const completeOnboarding = createAsyncThunk(
+  "auth/completeOnboarding",
+  async (onboardingData: OnboardingData, { rejectWithValue }) => {
+    try {
+      const response = await apiService.completeOnboarding(onboardingData);
       return response as { user: User };
     } catch (error: unknown) {
       const message =
@@ -358,6 +408,25 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      // Google Auth
+      .addCase(googleAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        googleAuth.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.isAuthenticated = true;
+          state.error = null;
+        }
+      )
+      .addCase(googleAuth.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
       // Get Profile
       .addCase(getProfile.pending, (state) => {
         state.loading = true;
@@ -372,6 +441,23 @@ const authSlice = createSlice({
         }
       )
       .addCase(getProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Complete Onboarding
+      .addCase(completeOnboarding.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        completeOnboarding.fulfilled,
+        (state, action: PayloadAction<{ user: User }>) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          state.error = null;
+        }
+      )
+      .addCase(completeOnboarding.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

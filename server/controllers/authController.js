@@ -4,6 +4,7 @@ const User = require("../models/User");
 const PasswordReset = require("../models/PasswordReset");
 const EmailVerification = require("../models/EmailVerification");
 const cloudinary = require("../config/cloudinary");
+const { verifyGoogleToken, getGoogleAuthUrl, getTokensFromCode } = require("../config/googleAuth");
 
 // Helper function to generate JWT token
 const generateToken = (userId) => {
@@ -15,6 +16,17 @@ const generateToken = (userId) => {
 // Helper function to upload to Cloudinary
 const uploadToCloudinary = async (file) => {
   return new Promise((resolve, reject) => {
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("Cloudinary configuration missing:", {
+        cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: !!process.env.CLOUDINARY_API_KEY,
+        api_secret: !!process.env.CLOUDINARY_API_SECRET
+      });
+      reject(new Error("Cloudinary configuration is missing. Please check your environment variables."));
+      return;
+    }
+
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "gridspace/profiles",
@@ -25,8 +37,10 @@ const uploadToCloudinary = async (file) => {
       },
       (error, result) => {
         if (error) {
+          console.error("Cloudinary upload error:", error);
           reject(error);
         } else {
+          console.log("Cloudinary upload successful:", result.secure_url);
           resolve(result.secure_url);
         }
       }
@@ -579,6 +593,92 @@ const refreshToken = async (req, res) => {
   }
 };
 
+// Complete onboarding
+const completeOnboarding = async (req, res) => {
+  try {
+    const { role, purposes, location } = req.body;
+    const userId = req.user._id;
+
+    // Validate required fields
+    if (!role) {
+      return res.status(400).json({
+        success: false,
+        message: "Role is required for onboarding",
+      });
+    }
+
+    // Validate role
+    const validRoles = ["user", "host", "admin"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role. Must be one of: user, host, admin",
+      });
+    }
+
+    // Parse purposes if it's a string (from form data)
+    let parsedPurposes = [];
+    if (purposes) {
+      try {
+        parsedPurposes = typeof purposes === 'string' ? JSON.parse(purposes) : purposes;
+        if (!Array.isArray(parsedPurposes)) {
+          parsedPurposes = [];
+        }
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid purposes format. Must be a valid JSON array",
+        });
+      }
+    }
+
+    // Prepare update object
+    const updateData = {
+      role: role.trim(),
+      onboardingCompleted: true,
+      purposes: parsedPurposes,
+    };
+
+    if (location) {
+      updateData.location = location.trim();
+    }
+
+    // Update profile picture if file exists
+    if (req.file) {
+      try {
+        console.log("Uploading profile picture for onboarding...");
+        const profilePicUrl = await uploadToCloudinary(req.file);
+        updateData.profilePic = profilePicUrl;
+        console.log("Profile picture uploaded successfully:", profilePicUrl);
+      } catch (error) {
+        console.error("Profile picture upload failed:", error);
+        return res.status(500).json({
+          success: false,
+          message: `Failed to upload profile picture: ${error.message}`,
+        });
+      }
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Onboarding completed successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 // Delete account
 const deleteAccount = async (req, res) => {
   try {
@@ -627,11 +727,161 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+// Google OAuth Signup/Signin with ID Token
+const googleAuth = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    // Validate required fields
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Google ID token is required",
+      });
+    }
+
+    // Verify Google ID token
+    const googleUser = await verifyGoogleToken(idToken);
+
+    // Check if user already exists
+    let user = await User.findOne({
+      $or: [
+        { googleId: googleUser.googleId },
+        { email: googleUser.email }
+      ]
+    });
+
+    if (user) {
+      // User exists, update Google ID if not set
+      if (!user.googleId) {
+        user.googleId = googleUser.googleId;
+        user.authProvider = 'google';
+        user.emailVerified = googleUser.emailVerified;
+        if (googleUser.profilePic && !user.profilePic) {
+          user.profilePic = googleUser.profilePic;
+        }
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = new User({
+        fullname: googleUser.fullname,
+        email: googleUser.email,
+        googleId: googleUser.googleId,
+        authProvider: 'google',
+        emailVerified: googleUser.emailVerified,
+        profilePic: googleUser.profilePic,
+        phonenumber: `+${Math.floor(Math.random() * 9000000000) + 1000000000}`, // Generate random phone for Google users
+      });
+
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    // Return success response with token and user info
+    res.status(200).json({
+      success: true,
+      message: user.googleId ? "Google signin successful" : "Google signup successful",
+      token,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Google authentication failed",
+      error: error.message,
+    });
+  }
+};
+
+// Get Google OAuth URL
+const getGoogleAuthUrlController = async (req, res) => {
+  try {
+    const authUrl = getGoogleAuthUrl();
+    
+    res.status(200).json({
+      success: true,
+      message: "Google auth URL generated",
+      authUrl,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate Google auth URL",
+      error: error.message,
+    });
+  }
+};
+
+// Google OAuth Callback (for server-side flow)
+const googleCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Authorization code is required",
+      });
+    }
+
+    // Exchange code for tokens and get user info
+    const googleUser = await getTokensFromCode(code);
+
+    // Check if user already exists
+    let user = await User.findOne({
+      $or: [
+        { googleId: googleUser.googleId },
+        { email: googleUser.email }
+      ]
+    });
+
+    if (user) {
+      // User exists, update Google ID if not set
+      if (!user.googleId) {
+        user.googleId = googleUser.googleId;
+        user.authProvider = 'google';
+        user.emailVerified = googleUser.emailVerified;
+        if (googleUser.profilePic && !user.profilePic) {
+          user.profilePic = googleUser.profilePic;
+        }
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = new User({
+        fullname: googleUser.fullname,
+        email: googleUser.email,
+        googleId: googleUser.googleId,
+        authProvider: 'google',
+        emailVerified: googleUser.emailVerified,
+        profilePic: googleUser.profilePic,
+        phonenumber: `+${Math.floor(Math.random() * 9000000000) + 1000000000}`, // Generate random phone for Google users
+      });
+
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    // Redirect to frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}&success=true`);
+  } catch (error) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?success=false&error=${encodeURIComponent(error.message)}`);
+  }
+};
+
 module.exports = {
   signup,
   signin,
   getProfile,
   updateProfile,
+  completeOnboarding,
   changePassword,
   requestPasswordReset,
   resetPassword,
@@ -640,4 +890,7 @@ module.exports = {
   logout,
   refreshToken,
   deleteAccount,
+  googleAuth,
+  getGoogleAuthUrlController,
+  googleCallback,
 };

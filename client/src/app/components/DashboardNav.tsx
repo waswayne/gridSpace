@@ -1,62 +1,90 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Calendar, Filter } from "lucide-react";
+import { Search, Bell, Filter } from "lucide-react";
 
 interface DashboardNavProps {
   userName: string;
   memberSince: string;
   wallet?: string;
+  profilePic?: string;
 }
 
 export default function DashboardNav({
   userName,
   memberSince,
   wallet = "₦0",
+  profilePic,
 }: DashboardNavProps) {
   return (
-    <nav className="flex flex-col lg:flex-row items-center justify-between px-4 sm:px-6 md:px-8 lg:px-[109px] py-4 lg:py-[6px] bg-white gap-4 lg:gap-0">
-      <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-[318px] w-full lg:w-auto">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="GridSpace Logo" width={48} height={48} />
-          <span className="text-xl sm:text-2xl lg:text-[28px] font-bold text-[#F25417]">
-            GridSpace
-          </span>
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex items-center px-3 sm:px-[10px] py-2 sm:py-[13px] gap-2 sm:gap-[348px] w-full sm:w-[300px] md:w-[400px] lg:w-[466px] h-10 sm:h-[44px] border border-[#002F5B] rounded-lg">
-          <div className="flex items-center gap-1 sm:gap-[3px]">
-            <Search className="w-4 h-4 sm:w-6 sm:h-6 text-[#A8A7A7]" />
-            <span className="text-xs sm:text-[12px] text-[#A8A7A7]">
-              search...
-            </span>
+    <div className="py-3 md:py-4 w-full">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8 w-full">
+        <div className="flex items-center justify-between h-[56px] md:h-[70px] gap-6">
+          {/* Logo Section */}
+          <div className="flex items-center justify-between md:flex-none md:gap-[318px]">
+            <div className="flex items-center gap-2 md:gap-3">
+              <Image
+                src="/logo.png"
+                alt="GridSpace Logo"
+                width={40}
+                height={40}
+                className="w-10 h-10 md:w-12 md:h-12"
+              />
+              <span className="text-[#F25417] font-bold text-[20px] leading-[24px] md:text-[28px] md:leading-[34px]">
+                GridSpace
+              </span>
+            </div>
           </div>
-          <Filter className="w-4 h-4 sm:w-6 sm:h-6 text-[#121212] ml-auto" />
+
+          {/* Search Bar */}
+          <div className="hidden sm:flex items-center px-[10px] py-[13px] gap-[348px] bg-white border border-[#D1D5DB] rounded-lg w-[30%] h-[44px]">
+            <div className="flex justify-between items-center gap-[3px] w-full">
+              <div className="flex items-center">
+                <Search className="w-6 h-6 mr-2 text-[#A8A7A7]" />
+                <span className="text-[12px] text-[#A8A7A7]">search...</span>
+              </div>
+              <Filter className="w-6 h-6 text-[#A8A7A7]" />
+            </div>
+          </div>
+
+          {/* User Profile Section */}
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-[49px] md:h-[49px] bg-[#E7E7E7] rounded-full flex sm:hidden items-center justify-center">
+              <Search className="w-5 h-5 md:w-7 md:h-7 text-[#121212]" />
+            </div>
+            <div className="w-8 h-8 md:w-[49px] md:h-[49px] bg-[#E7E7E7] rounded-full flex items-center justify-center">
+              <Bell className="w-4 h-4 md:w-7 md:h-7 text-[#121212]" />
+            </div>
+            <div className="flex items-center gap-2 md:gap-[6px]">
+              <div className="min-w-10 min-h-10 w-[70px] h-[70px] bg-gray-200 rounded-full overflow-hidden">
+                {profilePic ? (
+                  <Image
+                    src={profilePic}
+                    alt={`${userName}'s profile`}
+                    width={70}
+                    height={70}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
+                    <span className="text-gray-500 text-sm font-medium">
+                      {userName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className=" hidden md:flex md:flex-col gap-0.5 md:gap-1">
+                <span className="text-[14px] md:text-[16px] font-semibold text-[#002F5B] leading-[17px] md:leading-[19px]">
+                  {userName}
+                </span>
+                <span className="text-[10px] md:text-[12px] text-[#686767] leading-[13px] md:leading-[15px]">
+                  Member since {memberSince}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* User Profile */}
-      <div className="flex items-center gap-2 sm:gap-[12px] w-full lg:w-[247px] h-auto lg:h-[70px] justify-center lg:justify-start">
-        <div className="w-8 h-8 sm:w-[49px] sm:h-[49px] bg-[#E7E7E7] rounded-full flex items-center justify-center">
-          <Calendar className="w-4 h-4 sm:w-7 sm:h-7 text-[#121212]" />
-        </div>
-        <div className="flex items-center gap-1 sm:gap-[6px]">
-          <div className="w-10 h-10 sm:w-[70px] sm:h-[70px] bg-gray-300 rounded-full"></div>
-          <div className="flex flex-col gap-1">
-            <span className="text-sm sm:text-[16px] font-semibold text-[#002F5B]">
-              {userName}
-            </span>
-            <span className="text-xs sm:text-[12px] text-[#686767]">
-              Member since {memberSince}
-            </span>
-            <span className="text-xs sm:text-[12px] text-[#F25417] font-medium">
-              Wallet: {wallet}
-            </span>
-          </div>
-        </div>
-      </div>
-    </nav>
+    </div>
   );
 }

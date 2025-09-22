@@ -17,6 +17,8 @@ import {
   MapPin,
   Upload,
 } from "lucide-react";
+import { useAppDispatch } from "@/store/hooks";
+import { completeOnboarding } from "@/store/slices/authSlice";
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -25,28 +27,70 @@ export default function OnboardingPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [customLocation, setCustomLocation] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(
+    null
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentStep === 1 && selectedRole) {
-      // Store the selected role and move to step 2
-      localStorage.setItem("userRole", selectedRole);
+      // Move to step 2
       setCurrentStep(2);
     } else if (currentStep === 2 && selectedPurposes.length > 0) {
-      // Store the selected purposes and move to step 3
-      localStorage.setItem("userPurposes", JSON.stringify(selectedPurposes));
+      // Move to step 3
       setCurrentStep(3);
     } else if (currentStep === 3 && (selectedLocation || customLocation)) {
-      // Store the selected location and move to step 4
-      const location = selectedLocation || customLocation;
-      localStorage.setItem("userLocation", location);
+      // Move to step 4
       setCurrentStep(4);
     } else if (currentStep === 4) {
-      // Complete onboarding (profile picture is optional)
-      if (profilePicture) {
-        localStorage.setItem("userProfilePicture", profilePicture);
+      // Complete onboarding by sending data to server
+      setIsSubmitting(true);
+
+      try {
+        setError(null);
+        const location = selectedLocation || customLocation;
+        // Map frontend role values to backend role values
+        const roleMapping: { [key: string]: string } = {
+          "seeker": "user",
+          "host": "host",
+          "admin": "admin"
+        };
+
+        const onboardingData = {
+          role: roleMapping[selectedRole] || selectedRole,
+          purposes: selectedPurposes,
+          location: location,
+          profilePic: profilePictureFile || undefined,
+        };
+
+        console.log("Onboarding data being sent:", {
+          ...onboardingData,
+          profilePic: onboardingData.profilePic ? "File present" : "No file"
+        });
+
+        await dispatch(completeOnboarding(onboardingData)).unwrap();
+
+        // Redirect to appropriate dashboard based on user role
+        const mappedRole = roleMapping[selectedRole] || selectedRole;
+        if (mappedRole === "host") {
+          router.push("/host-dashboard");
+        } else if (mappedRole === "user") {
+          router.push("/dashboard");
+        } else if (mappedRole === "admin") {
+          router.push("/admin-dashboard");
+        } else {
+          // Fallback to user dashboard if role is not recognized
+          router.push("/dashboard");
+        }
+      } catch (error: any) {
+        console.error("Failed to complete onboarding:", error);
+        setError(error.message || "Failed to complete onboarding. Please try again.");
+      } finally {
+        setIsSubmitting(false);
       }
-      router.push("/signin");
     }
   };
 
@@ -84,6 +128,7 @@ export default function OnboardingPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setProfilePictureFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfilePicture(e.target?.result as string);
@@ -524,6 +569,20 @@ export default function OnboardingPage() {
           </div>
         )}
 
+        {/* Error Message */}
+        {error && (
+          <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <p className="text-red-800 text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
         <div className="flex flex-row items-center justify-between w-full h-[48px]">
           {/* Back Button */}
@@ -541,32 +600,31 @@ export default function OnboardingPage() {
           <button
             onClick={handleContinue}
             disabled={
-              currentStep === 1
+              isSubmitting ||
+              (currentStep === 1
                 ? !selectedRole
                 : currentStep === 2
                 ? selectedPurposes.length === 0
                 : currentStep === 3
                 ? !selectedLocation && !customLocation
-                : false
+                : false)
             }
             className={`flex flex-row justify-center items-center gap-2.5 px-4 py-3 rounded-[8px] transition-colors w-[138px] ${
-              (
-                currentStep === 1
-                  ? selectedRole
-                  : currentStep === 2
-                  ? selectedPurposes.length > 0
-                  : currentStep === 3
-                  ? selectedLocation || customLocation
-                  : true
-              )
+              (currentStep === 1
+                ? selectedRole
+                : currentStep === 2
+                ? selectedPurposes.length > 0
+                : currentStep === 3
+                ? selectedLocation || customLocation
+                : true) && !isSubmitting
                 ? "bg-[#F25417] hover:bg-[#E04A15] text-white"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
             <span className="font-bold text-[16px] leading-[19px]">
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </span>
-            <ArrowRight className="w-6 h-6" />
+            {!isSubmitting && <ArrowRight className="w-6 h-6" />}
           </button>
         </div>
       </div>

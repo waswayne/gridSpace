@@ -21,7 +21,7 @@ export default function WorkspaceCard({
   return (
     <div className="flex flex-col gap-4 cursor-pointer" onClick={onClick}>
       {/* Image */}
-      <div className="w-[464px] h-[214px] bg-gradient-to-br from-blue-100 to-orange-100 rounded-lg relative overflow-hidden">
+      <div className="w-full h-[214px] bg-gradient-to-br from-blue-100 to-orange-100 rounded-lg relative overflow-hidden">
         <Image
           src={image}
           alt={name}
