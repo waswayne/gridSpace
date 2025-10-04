@@ -1,10 +1,11 @@
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const User = require("../models/User");
-const PasswordReset = require("../models/PasswordReset");
-const EmailVerification = require("../models/EmailVerification");
-const cloudinary = require("../config/cloudinary");
-const { verifyGoogleToken, getGoogleAuthUrl, getTokensFromCode } = require("../config/googleAuth");
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import User from '../models/User.js';
+import PasswordReset from '../models/PasswordReset.js';
+import EmailVerification from '../models/EmailVerification.js';
+import cloudinary from '../config/cloudinary.js';
+import { verifyGoogleToken, getGoogleAuthUrl, getTokensFromCode } from '../config/googleAuth.js';
+import streamifier from 'streamifier';
 
 // Helper function to generate JWT token
 const generateToken = (userId) => {
@@ -46,12 +47,12 @@ const uploadToCloudinary = async (file) => {
       }
     );
 
-    require("streamifier").createReadStream(file.buffer).pipe(uploadStream);
+    streamifier.createReadStream(file.buffer).pipe(uploadStream);
   });
 };
 
 // Signup controller
-const signup = async (req, res) => {
+export const signup = async (req, res) => {
   try {
     const { fullname, email, password, phonenumber } = req.body;
 
@@ -144,7 +145,7 @@ const signup = async (req, res) => {
 };
 
 // Signin controller
-const signin = async (req, res) => {
+export const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -194,7 +195,7 @@ const signin = async (req, res) => {
 };
 
 // Get current user profile
-const getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const user = req.user;
     res.status(200).json({
@@ -212,7 +213,7 @@ const getProfile = async (req, res) => {
 };
 
 // Update user profile
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { fullname, phonenumber } = req.body;
     const userId = req.user._id;
@@ -278,7 +279,7 @@ const updateProfile = async (req, res) => {
 };
 
 // Change password
-const changePassword = async (req, res) => {
+export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user._id;
@@ -335,7 +336,7 @@ const changePassword = async (req, res) => {
 };
 
 // Request password reset
-const requestPasswordReset = async (req, res) => {
+export const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -383,7 +384,7 @@ const requestPasswordReset = async (req, res) => {
 };
 
 // Reset password
-const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
@@ -448,7 +449,7 @@ const resetPassword = async (req, res) => {
 };
 
 // Request email verification
-const requestEmailVerification = async (req, res) => {
+export const requestEmailVerification = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -496,7 +497,7 @@ const requestEmailVerification = async (req, res) => {
 };
 
 // Verify email
-const verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.body;
 
@@ -553,7 +554,7 @@ const verifyEmail = async (req, res) => {
 };
 
 // Logout (client-side token removal)
-const logout = async (req, res) => {
+export const logout = async (req, res) => {
   try {
     // In a stateless JWT system, logout is handled client-side
     // You could implement a token blacklist here if needed
@@ -571,7 +572,7 @@ const logout = async (req, res) => {
 };
 
 // Refresh token
-const refreshToken = async (req, res) => {
+export const refreshToken = async (req, res) => {
   try {
     const user = req.user;
 
@@ -594,7 +595,7 @@ const refreshToken = async (req, res) => {
 };
 
 // Complete onboarding
-const completeOnboarding = async (req, res) => {
+export const completeOnboarding = async (req, res) => {
   try {
     const { role, purposes, location } = req.body;
     const userId = req.user._id;
@@ -680,7 +681,7 @@ const completeOnboarding = async (req, res) => {
 };
 
 // Delete account
-const deleteAccount = async (req, res) => {
+export const deleteAccount = async (req, res) => {
   try {
     const userId = req.user._id;
     const { password } = req.body;
@@ -728,7 +729,7 @@ const deleteAccount = async (req, res) => {
 };
 
 // Google OAuth Signup/Signin with ID Token
-const googleAuth = async (req, res) => {
+export const googleAuth = async (req, res) => {
   try {
     const { idToken } = req.body;
 
@@ -797,7 +798,7 @@ const googleAuth = async (req, res) => {
 };
 
 // Get Google OAuth URL
-const getGoogleAuthUrlController = async (req, res) => {
+export const getGoogleAuthUrlController = async (req, res) => {
   try {
     const authUrl = getGoogleAuthUrl();
     
@@ -816,7 +817,7 @@ const getGoogleAuthUrlController = async (req, res) => {
 };
 
 // Google OAuth Callback (for server-side flow)
-const googleCallback = async (req, res) => {
+export const googleCallback = async (req, res) => {
   try {
     const { code } = req.query;
 
@@ -874,23 +875,4 @@ const googleCallback = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     res.redirect(`${frontendUrl}/auth/callback?success=false&error=${encodeURIComponent(error.message)}`);
   }
-};
-
-module.exports = {
-  signup,
-  signin,
-  getProfile,
-  updateProfile,
-  completeOnboarding,
-  changePassword,
-  requestPasswordReset,
-  resetPassword,
-  requestEmailVerification,
-  verifyEmail,
-  logout,
-  refreshToken,
-  deleteAccount,
-  googleAuth,
-  getGoogleAuthUrlController,
-  googleCallback,
 };

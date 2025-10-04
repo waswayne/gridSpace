@@ -1,4 +1,4 @@
-const winston = require("winston");
+import winston from '../libs/winston.js';
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || "info",
@@ -10,4 +10,4 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-module.exports = logger;
+export default logger;

@@ -1,6 +1,6 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const {
+import {
   signup,
   signin,
   getProfile,
@@ -17,11 +17,11 @@ const {
   googleAuth,
   getGoogleAuthUrlController,
   googleCallback,
-} = require("../controllers/authController");
-const { authenticate } = require("../middleware/auth");
-const upload = require("../config/multer");
+} from '../controllers/authController.js';
+import { authenticate } from '../middleware/auth.js';
+import upload from '../config/multer.js';
 
-// Public routes (no authentication required)
+// Public routes
 router.post("/signup", upload.single("profilePic"), signup);
 router.post("/signin", signin);
 router.post("/request-password-reset", requestPasswordReset);
@@ -34,28 +34,18 @@ router.post("/google", googleAuth);
 router.get("/google/url", getGoogleAuthUrlController);
 router.get("/google/callback", googleCallback);
 
-// Protected routes (authentication required)
+// Protected routes
 router.get("/profile", authenticate, getProfile);
-router.put(
-  "/profile",
-  authenticate,
-  upload.single("profilePic"),
-  updateProfile
-);
-router.post(
-  "/onboarding",
-  authenticate,
-  upload.single("profilePic"),
-  completeOnboarding
-);
+router.put("/profile", authenticate, upload.single("profilePic"), updateProfile);
+router.post("/onboarding", authenticate, upload.single("profilePic"), completeOnboarding);
 router.put("/change-password", authenticate, changePassword);
 router.post("/logout", authenticate, logout);
 router.post("/refresh-token", authenticate, refreshToken);
 router.delete("/account", authenticate, deleteAccount);
 
-// Test route (can be removed in production)
+// Test route
 router.get("/test", (req, res) => {
   res.json({ message: "Auth routes are working!" });
 });
 
-module.exports = router;
+export default router;
