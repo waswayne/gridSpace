@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import User from '../models/User.js';
+import User from '../models/User.model.js';
 import PasswordReset from '../models/PasswordReset.js';
 import EmailVerification from '../models/EmailVerification.js';
 import cloudinary from '../config/cloudinary.js';

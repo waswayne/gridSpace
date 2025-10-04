@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: function() {
+    required: function () {
       return !this.googleId; // Password is required only if not using Google OAuth
     },
     minlength: [6, "Password must be at least 6 characters long"],
@@ -34,8 +34,8 @@ const userSchema = new mongoose.Schema({
   },
   authProvider: {
     type: String,
-    enum: ['local', 'google'],
-    default: 'local',
+    enum: ["local", "google"],
+    default: "local",
   },
   role: {
     type: String,
@@ -54,9 +54,16 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  purposes: [{
-    type: String,
-  }],
+  purposes: [
+    {
+      type: String,
+    },
+  ],
+  // Add to User.model.js schema:
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   location: {
     type: String,
     trim: true,
