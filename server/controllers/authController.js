@@ -6,6 +6,7 @@ import EmailVerification from '../models/EmailVerification.js';
 import cloudinary from '../config/cloudinary.js';
 import { verifyGoogleToken, getGoogleAuthUrl, getTokensFromCode } from '../config/googleAuth.js';
 import streamifier from 'streamifier';
+import logger from '../config/logger.js';
 
 // Helper function to generate JWT token
 const generateToken = (userId) => {
@@ -19,7 +20,7 @@ const uploadToCloudinary = async (file) => {
   return new Promise((resolve, reject) => {
     // Check if Cloudinary is configured
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.error("Cloudinary configuration missing:", {
+      logger.error("Cloudinary configuration missing:", {
         cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
         api_key: !!process.env.CLOUDINARY_API_KEY,
         api_secret: !!process.env.CLOUDINARY_API_SECRET
@@ -38,10 +39,10 @@ const uploadToCloudinary = async (file) => {
       },
       (error, result) => {
         if (error) {
-          console.error("Cloudinary upload error:", error);
+          logger.error("Cloudinary upload error:", error);
           reject(error);
         } else {
-          console.log("Cloudinary upload successful:", result.secure_url);
+          logger.info("Cloudinary upload successful:", result.secure_url);
           resolve(result.secure_url);
         }
       }
@@ -368,7 +369,7 @@ export const requestPasswordReset = async (req, res) => {
     });
 
     // In a real application, you would send an email here
-    // For now, we'll just return the token (remove this in production)
+    // For now, we'''ll just return the token (remove this in production)
     res.status(200).json({
       success: true,
       message: "Password reset token generated",
@@ -481,7 +482,7 @@ export const requestEmailVerification = async (req, res) => {
     });
 
     // In a real application, you would send an email here
-    // For now, we'll just return the token (remove this in production)
+    // For now, we'''ll just return the token (remove this in production)
     res.status(200).json({
       success: true,
       message: "Email verification token generated",
@@ -536,7 +537,7 @@ export const verifyEmail = async (req, res) => {
     emailVerification.verified = true;
     await emailVerification.save();
 
-    // Update user's emailVerified status
+    // Update user'''s emailVerified status
     user.emailVerified = true;
     await user.save();
 
@@ -617,7 +618,7 @@ export const completeOnboarding = async (req, res) => {
       });
     }
 
-    // Parse purposes if it's a string (from form data)
+    // Parse purposes if it'''s a string (from form data)
     let parsedPurposes = [];
     if (purposes) {
       try {
@@ -647,12 +648,12 @@ export const completeOnboarding = async (req, res) => {
     // Update profile picture if file exists
     if (req.file) {
       try {
-        console.log("Uploading profile picture for onboarding...");
+        logger.info("Uploading profile picture for onboarding...");
         const profilePicUrl = await uploadToCloudinary(req.file);
         updateData.profilePic = profilePicUrl;
-        console.log("Profile picture uploaded successfully:", profilePicUrl);
+        logger.info("Profile picture uploaded successfully:", profilePicUrl);
       } catch (error) {
-        console.error("Profile picture upload failed:", error);
+        logger.error("Profile picture upload failed:", error);
         return res.status(500).json({
           success: false,
           message: `Failed to upload profile picture: ${error.message}`,
