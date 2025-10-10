@@ -40,3 +40,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# internal tracking files
+problems.md
+problems/
+todo/
+API_DOCUMENTATION.md
+SPACES_API_DOCUMENTATION.md
+BOOKINGS_API_DOCUMENTATION.md
+bugfix_plan.md
+esm-migration-audit/
+test-migration.mjs
+backups/

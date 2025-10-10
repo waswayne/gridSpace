@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 const router = express.Router();
 import {
   signup,
@@ -21,12 +22,40 @@ import {
 import { authenticate } from '../middleware/auth.js';
 import upload from '../config/multer.js';
 
+// Security rate limiting configurations
+const strictAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Only 5 attempts per 15 minutes per IP
+  message: {
+    success: false,
+    message: 'Too many authentication attempts. Try again in 15 minutes.'
+  }
+});
+
+const moderateAuthLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // 10 attempts per minute per IP
+  message: {
+    success: false,
+    message: 'Too many requests. Please slow down.'
+  }
+});
+
+const gentleAuthLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5, // 5 attempts per 10 minutes per IP
+  message: {
+    success: false,
+    message: 'Too many requests. Try again later.'
+  }
+});
+
 // Public routes
-router.post("/signup", upload.single("profilePic"), signup);
-router.post("/signin", signin);
-router.post("/request-password-reset", requestPasswordReset);
-router.post("/reset-password", resetPassword);
-router.post("/request-email-verification", requestEmailVerification);
+router.post("/signup", moderateAuthLimiter, upload.single("profilePic"), signup);
+router.post("/signin", strictAuthLimiter, signin);
+router.post("/request-password-reset", moderateAuthLimiter, requestPasswordReset);
+router.post("/reset-password", gentleAuthLimiter, resetPassword);
+router.post("/request-email-verification", gentleAuthLimiter, requestEmailVerification);
 router.post("/verify-email", verifyEmail);
 
 // Google OAuth routes

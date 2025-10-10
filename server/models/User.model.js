@@ -7,10 +7,13 @@ const userSchema = new mongoose.Schema({
     required: [true, "Full name is required"],
     trim: true,
   },
-  phonenumber: {
+  phoneNumber: {
     type: String,
-    required: [true, "Phone number is required"],
+    required: function () {
+      return this.authProvider !== 'google'; // Only required for local users
+    },
     unique: true,
+    sparse: true, // Allows multiple null values for OAuth users
     trim: true,
   },
   email: {

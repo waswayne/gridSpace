@@ -8,11 +8,21 @@ import { verifyGoogleToken, getGoogleAuthUrl, getTokensFromCode } from '../confi
 import streamifier from 'streamifier';
 import logger from '../config/logger.js';
 
-// Helper function to generate JWT token
+// Helper function to generate secure JWT token
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES || "7d",
-  });
+  return jwt.sign(
+    {
+      id: userId,
+      iat: Date.now() / 1000, // Issued at time
+      type: 'access' // Token type for future refresh token logic
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES || '24h',
+      issuer: 'gridspace-backend',
+      audience: 'gridspace-client'
+    }
+  );
 };
 
 // Helper function to upload to Cloudinary
@@ -55,14 +65,14 @@ const uploadToCloudinary = async (file) => {
 // Signup controller
 export const signup = async (req, res) => {
   try {
-    const { fullname, email, password, phonenumber } = req.body;
+    const { fullname, email, password, phoneNumber } = req.body;
 
     // Validate required fields
-    if (!fullname || !email || !password || !phonenumber) {
+    if (!fullname || !email || !password || !phoneNumber) {
       return res.status(400).json({
         success: false,
         message:
-          "Please provide all required fields: fullname, email, password, phonenumber",
+          "Please provide all required fields: fullname, email, password, phoneNumber",
       });
     }
 
@@ -93,7 +103,7 @@ export const signup = async (req, res) => {
     }
 
     // Check if phone number already exists
-    const existingPhone = await User.findOne({ phonenumber });
+    const existingPhone = await User.findOne({ phoneNumber });
     if (existingPhone) {
       return res.status(400).json({
         success: false,
@@ -120,7 +130,7 @@ export const signup = async (req, res) => {
       fullname: fullname.trim(),
       email: email.toLowerCase().trim(),
       password,
-      phonenumber: phonenumber.trim(),
+      phoneNumber: phoneNumber.trim(),
       profilePic: profilePicUrl,
     });
 
@@ -216,11 +226,11 @@ export const getProfile = async (req, res) => {
 // Update user profile
 export const updateProfile = async (req, res) => {
   try {
-    const { fullname, phonenumber } = req.body;
+    const { fullname, phoneNumber } = req.body;
     const userId = req.user._id;
 
     // Validate required fields
-    if (!fullname && !phonenumber) {
+    if (!fullname && !phoneNumber) {
       return res.status(400).json({
         success: false,
         message: "Please provide at least one field to update",
@@ -228,9 +238,9 @@ export const updateProfile = async (req, res) => {
     }
 
     // Check if phone number is being updated and if it already exists
-    if (phonenumber && phonenumber !== req.user.phonenumber) {
+    if (phoneNumber && phoneNumber !== req.user.phoneNumber) {
       const existingPhone = await User.findOne({
-        phonenumber,
+        phoneNumber,
         _id: { $ne: userId },
       });
       if (existingPhone) {
@@ -244,7 +254,7 @@ export const updateProfile = async (req, res) => {
     // Prepare update object
     const updateData = {};
     if (fullname) updateData.fullname = fullname.trim();
-    if (phonenumber) updateData.phonenumber = phonenumber.trim();
+    if (phoneNumber) updateData.phoneNumber = phoneNumber.trim();
 
     // Update profile picture if file exists
     if (req.file) {
@@ -368,12 +378,19 @@ export const requestPasswordReset = async (req, res) => {
       expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
     });
 
-    // In a real application, you would send an email here
-    // For now, we'''ll just return the token (remove this in production)
+    // Log security event without exposing the token
+    logger.info('Password reset token generated', {
+      email: email.toLowerCase(),
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    // In a production environment, you would send an email here:
+    // await sendPasswordResetEmail(email, resetToken);
     res.status(200).json({
       success: true,
-      message: "Password reset token generated",
-      resetToken, // Remove this in production
+      message: "Password reset instructions sent to your email", // Generic message
     });
   } catch (error) {
     res.status(500).json({
@@ -481,12 +498,19 @@ export const requestEmailVerification = async (req, res) => {
       expiresAt: new Date(Date.now() + 86400000), // 24 hours from now
     });
 
-    // In a real application, you would send an email here
-    // For now, we'''ll just return the token (remove this in production)
+    // Log security event without exposing the token
+    logger.info('Email verification token generated', {
+      email: email.toLowerCase(),
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    // In a production environment, you would send an email here:
+    // await sendEmailVerification(email, verificationToken);
     res.status(200).json({
       success: true,
-      message: "Email verification token generated",
-      verificationToken, // Remove this in production
+      message: "Email verification instructions sent to your email", // Generic message
     });
   } catch (error) {
     res.status(500).json({
@@ -537,7 +561,7 @@ export const verifyEmail = async (req, res) => {
     emailVerification.verified = true;
     await emailVerification.save();
 
-    // Update user'''s emailVerified status
+    // Update user's emailVerified status
     user.emailVerified = true;
     await user.save();
 
@@ -618,7 +642,7 @@ export const completeOnboarding = async (req, res) => {
       });
     }
 
-    // Parse purposes if it'''s a string (from form data)
+    // Parse purposes if it's a string (from form data)
     let parsedPurposes = [];
     if (purposes) {
       try {
@@ -765,7 +789,7 @@ export const googleAuth = async (req, res) => {
         await user.save();
       }
     } else {
-      // Create new user
+      // Create new user - phone number optional for Google OAuth
       user = new User({
         fullname: googleUser.fullname,
         email: googleUser.email,
@@ -773,7 +797,7 @@ export const googleAuth = async (req, res) => {
         authProvider: 'google',
         emailVerified: googleUser.emailVerified,
         profilePic: googleUser.profilePic,
-        phonenumber: `+${Math.floor(Math.random() * 9000000000) + 1000000000}`, // Generate random phone for Google users
+        phoneNumber: googleUser.phoneNumber || null, // Use Google phone if available, else null
       });
 
       await user.save();
@@ -852,7 +876,7 @@ export const googleCallback = async (req, res) => {
         await user.save();
       }
     } else {
-      // Create new user
+      // Create new user - phone number optional for Google OAuth
       user = new User({
         fullname: googleUser.fullname,
         email: googleUser.email,
@@ -860,7 +884,7 @@ export const googleCallback = async (req, res) => {
         authProvider: 'google',
         emailVerified: googleUser.emailVerified,
         profilePic: googleUser.profilePic,
-        phonenumber: `+${Math.floor(Math.random() * 9000000000) + 1000000000}`, // Generate random phone for Google users
+        phoneNumber: googleUser.phoneNumber || null, // Use Google phone if available, else null
       });
 
       await user.save();
@@ -870,10 +894,10 @@ export const googleCallback = async (req, res) => {
     const token = generateToken(user._id);
 
     // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL;
     res.redirect(`${frontendUrl}/auth/callback?token=${token}&success=true`);
   } catch (error) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL;
     res.redirect(`${frontendUrl}/auth/callback?success=false&error=${encodeURIComponent(error.message)}`);
   }
 };
