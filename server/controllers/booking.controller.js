@@ -288,7 +288,7 @@ export const updateBookingStatus = async (req, res) => {
 
     // ===== VALIDATE STATUS TRANSITION =====
     const validTransitions = {
-      pending: ['confirmed', 'cancelled', 'rejected'],
+      pending: ['confirmed', 'upcoming', 'cancelled', 'rejected'],
       upcoming: ['cancelled'],
       confirmed: ['cancelled']
     };

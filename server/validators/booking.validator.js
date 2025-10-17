@@ -49,11 +49,12 @@ export const createBookingValidation = Joi.object({
 /**
  * VALIDATION: Booking Status Update
  * Controls valid status transitions for booking lifecycle management
+ * Allows all valid statuses from the Booking model enum
  */
 export const updateBookingStatusValidation = Joi.object({
-  status: Joi.string().valid('confirmed', 'cancelled', 'rejected').required()
+  status: Joi.string().valid('pending', 'upcoming', 'in_progress', 'completed', 'cancelled').required()
     .messages({
-      'any.only': 'Status must be one of: confirmed, cancelled, rejected',
+      'any.only': 'Status must be one of: pending, upcoming, in_progress, completed, cancelled',
       'any.required': 'Status is required'
     }),
     
