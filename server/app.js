@@ -123,17 +123,21 @@ app.use(helmet({
 }));
 
 // Enhanced CORS configuration with security
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [
-  'http://localhost:3000', // development default
-  'http://localhost:3001', // common dev ports
-];
+console.log("CORS_ORIGIN:", process.env.CORS_ORIGIN);
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : [
+      'http://localhost:3000', // development default
+      'http://localhost:3001', // common dev ports
+    ];
+console.log("Allowed Origins:", allowedOrigins);
 
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
