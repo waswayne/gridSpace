@@ -6,7 +6,5 @@ yarn-debug.log*
 yarn-error.log*
 logs/
 
-# Ignore documentation except developer-facing docs
-docs/*
-!docs/dev_doc/
-!docs/dev_doc/**
+# Ignore root-level documentation (frontend receives copies elsewhere)
+docs/
