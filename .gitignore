@@ -5,3 +5,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 logs/
+
+# Ignore documentation except developer-facing docs
+docs/*
+!docs/dev_doc/
+!docs/dev_doc/**
