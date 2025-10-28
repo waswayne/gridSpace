@@ -1,5 +1,4 @@
 import { HealthService } from '../services/health.service.js';
-import { NotImplementedError } from '../utils/errors.js';
 
 export class HealthController {
   constructor({ healthService = new HealthService() } = {}) {
@@ -9,7 +8,13 @@ export class HealthController {
 
   async status(req, res, next) {
     try {
-      throw new NotImplementedError('HealthController.status is not implemented yet.');
+      const result = await this.healthService.check();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Service is healthy',
+        data: result,
+      });
     } catch (error) {
       return next(error);
     }
