@@ -13,7 +13,9 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:ci": "vitest --run",
+    "test:smoke": "vitest --run tests/integration/workspaces.smoke.spec.js"
   },
   "engines": {
     "node": ">=18.17.0"
@@ -38,10 +40,11 @@
     "helmet": "^7.1.0",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^6.9.15",
     "mongoose": "^8.6.0",
+    "mongoose-paginate-v2": "^1.9.1",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.15",
     "prom-client": "^15.1.3",
     "sanitize-html": "^2.17.0",
     "swagger-jsdoc": "^6.2.8",
@@ -54,8 +57,10 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^17.23.1",
     "eslint-plugin-promise": "^7.2.1",
+    "mongodb-memory-server": "^10.2.3",
     "nodemon": "^3.1.0",
     "prettier": "^3.6.2",
+    "supertest": "^7.1.4",
     "vitest": "^4.0.3"
   }
 }
