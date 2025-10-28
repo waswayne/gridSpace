@@ -1,0 +1,20 @@
+# Server-specific ignores (common patterns handled by root .gitignore)
+
+# Internal project files
+problems.md
+problems/
+todo/
+esm-migration-audit/
+test-migration.mjs
+esm-migration-audit/
+
+# Documentation (generated/in-progress)
+API_DOCUMENTATION.md
+SPACES_API_DOCUMENTATION.md
+BOOKINGS_API_DOCUMENTATION.md
+
+# Project management
+bugfix_plan.md
+production-requirements.md
+README.local.md
+node_modules
