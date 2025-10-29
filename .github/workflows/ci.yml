@@ -30,7 +30,15 @@ jobs:
       - name: Run unit & integration tests
         # Ensure a clean install then run tests in CI mode. Using --if-present
         # makes this step resilient if the script is absent in forks.
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
         run: npm ci --prefer-offline --no-audit && npm run test --if-present
 
       - name: Run workspace smoke tests
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
         run: npm run test:smoke --if-present
