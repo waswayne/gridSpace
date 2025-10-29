@@ -7,4 +7,4 @@ yarn-error.log*
 logs/
 
 # Ignore root-level documentation (frontend receives copies elsewhere)
-docs/
+/docs/
