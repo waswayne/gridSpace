@@ -1,5 +1,5 @@
 import { describe } from 'vitest';
 
-// Legacy server integration tests from the legacy Express scaffold.
-// Marked as skipped until the modern API surface is rebuilt for end-to-end coverage.
+// Legacy server integration tests from the previous scaffold.
+// Kept skipped until the booking domain rewrite is complete.
 describe.skip('Legacy server integration tests', () => {});
