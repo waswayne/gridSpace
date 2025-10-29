@@ -188,4 +188,17 @@ export class WorkspaceRepository {
   async countActiveByHost(hostId) {
     return this.workspaceModel.countDocuments({ hostId, isActive: true });
   }
+
+  async listActiveIdsByHost(hostId) {
+    if (!hostId) {
+      throw new Error('WorkspaceRepository.listActiveIdsByHost requires a hostId');
+    }
+
+    const spaces = await this.workspaceModel
+      .find({ hostId, isActive: true })
+      .select('_id')
+      .lean();
+
+    return spaces.map((space) => space._id);
+  }
 }

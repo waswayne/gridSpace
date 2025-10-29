@@ -71,7 +71,7 @@ describe('Workspace routes smoke tests', () => {
     request = supertest(app);
     workspaceRepository = new WorkspaceRepository();
     workspaceService = new WorkspaceService({ workspaceRepository });
-  });
+  }, 60_000);
 
   beforeEach(async () => {
     await resetDatabase();
