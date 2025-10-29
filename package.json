@@ -6,16 +6,16 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon --watch src --exec node src/index.js",
+    "dev": "npx nodemon --watch src --exec node src/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest",
+    "test": "cross-env CI=true vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:ci": "vitest --run",
-    "test:smoke": "vitest --run tests/integration/workspaces.smoke.spec.js"
+    "test:ci": "cross-env CI=true vitest run",
+    "test:smoke": "cross-env CI=true vitest run tests/integration/workspaces.smoke.spec.js"
   },
   "engines": {
     "node": ">=18.17.0"
@@ -52,6 +52,7 @@
     "winston": "^3.13.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
@@ -61,6 +62,6 @@
     "nodemon": "^3.1.0",
     "prettier": "^3.6.2",
     "supertest": "^7.1.4",
-    "vitest": "^4.0.3"
+    "vitest": "^4.0.4"
   }
 }
