@@ -1,0 +1,17 @@
+name: Keep Service Active
+
+on:
+  schedule:
+    # Runs every 14 minutes
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP Request
+        run: |
+          curl -f https://gridspace-skaw.onrender.com/api/v1/health || echo "Service is starting up"
+        # The -f flag will make curl return a non-zero exit code on HTTP errors
+        # We catch the error to prevent the workflow from failing during startup
