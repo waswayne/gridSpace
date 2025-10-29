@@ -179,6 +179,52 @@ describe('Workspace routes smoke tests', () => {
     expect(eleventhResponse.status, JSON.stringify(eleventhResponse.body)).toBe(400);
   });
 
+  it('rejects workspace creation when payload fails validation', async () => {
+    const { accessToken } = await createHostUser();
+
+    const response = await request
+      .post('/api/v1/workspaces')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .field('title', 'Bad Space')
+      .field('description', 'Too cheap to be true')
+      .field('location', 'Lagos')
+      .field('pricePerHour', '100') // below minimum 500
+      .field('capacity', '5')
+      .field('timeSlots[0][day]', 'monday')
+      .field('timeSlots[0][startTime]', '08:00')
+      .field('timeSlots[0][endTime]', '12:00');
+
+    expect(response.status, JSON.stringify(response.body)).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error?.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects workspace creation when more than five images are provided', async () => {
+    const { accessToken } = await createHostUser();
+
+    const builder = request
+      .post('/api/v1/workspaces')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .field('title', 'Image Heavy Space')
+      .field('description', 'Tons of images')
+      .field('location', 'Lagos')
+      .field('pricePerHour', '6000')
+      .field('capacity', '4')
+      .field('timeSlots[0][day]', 'monday')
+      .field('timeSlots[0][startTime]', '09:00')
+      .field('timeSlots[0][endTime]', '17:00');
+
+    for (let index = 0; index < 6; index += 1) {
+      builder.field(`images[${index}]`, `https://example.com/${index}.jpg`);
+    }
+
+    const response = await builder;
+
+    expect(response.status, JSON.stringify(response.body)).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error?.code).toBe('VALIDATION_ERROR');
+  });
+
   it('allows hosts to update their spaces', async () => {
     const { user: host, accessToken } = await createHostUser();
     const created = await workspaceRepository.create(
@@ -210,5 +256,13 @@ describe('Workspace routes smoke tests', () => {
 
     const publicResponse = await request.get(`/api/v1/workspaces/${created._id.toString()}`);
     expect(publicResponse.status).toBe(404);
+  });
+
+  it('requires authentication for host workspace listing', async () => {
+    const response = await request.get('/api/v1/workspaces/my/spaces');
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error?.code).toBe('UNAUTHORIZED');
   });
 });
