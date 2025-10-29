@@ -11,10 +11,10 @@
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "cross-env CI=true vitest run",
+    "test": "cross-env CI=true JWT_SECRET=3f02b4b1b61a24c2e3a2cf8e91a8c7128e6df94bce9c6f00e5cdbf84af57d7b3 REFRESH_TOKEN_SECRET=5a7f3c29e82f0146c5a94d02b21d3e5a07c16d83e2f445b8f29b9adf88c7dce1 MONGO_URI=mongodb://localhost:27017 vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:ci": "cross-env CI=true vitest run",
+    "test:ci": "cross-env CI=true JWT_SECRET=3f02b4b1b61a24c2e3a2cf8e91a8c7128e6df94bce9c6f00e5cdbf84af57d7b3 REFRESH_TOKEN_SECRET=5a7f3c29e82f0146c5a94d02b21d3e5a07c16d83e2f445b8f29b9adf88c7dce1 MONGO_URI=mongodb://localhost:27017 vitest run",
     "test:smoke": "cross-env CI=true vitest run tests/integration/workspaces.smoke.spec.js"
   },
   "engines": {
