@@ -1,331 +1,272 @@
-**GridSpace Authentication API Guide**
+# Auth API (v1)
 
-Base URL: `http://localhost:3000/api/auth`
+> Base path: `/api/v1/auth`
 
-Tokens are returned in the top-level response as `token`. Most endpoints reply using the `{ success, message, ... }` shape; additional fields vary per controller.
-
-## Common Headers
-
-- `Content-Type: application/json` (unless otherwise noted)
-- Authenticated routes require `Authorization: Bearer <token>`
+### Quick navigation
+- [Overview](#overview)
+- [Conventions & Headers](#conventions--headers)
+- [Endpoint catalogue](#endpoint-catalogue)
+- [Endpoint details](#endpoint-details)
+- [Error reference](#error-reference)
+- [Suggested manual test flow](#suggested-manual-test-flow)
 
 ---
 
-## 1. Sign Up (Local Accounts)
+## Overview
+The authentication service powers user sign-up, login, onboarding, credential recovery, email verification, Google OAuth, and profile image uploads. Every JSON payload returned by the backend uses the shared envelope below unless stated otherwise.
 
-**POST** `/signup`
-
-Content-Type: `multipart/form-data` to support optional profile pictures.
-
-| Field         | Type    | Required | Notes                                                      |
-|---------------|---------|----------|------------------------------------------------------------|
-| `fullname`    | string  | yes      | Trimmed before persistence                                 |
-| `email`       | string  | yes      | Stored lowercase                                           |
-| `password`    | string  | yes      | Minimum 6 characters                                       |
-| `phoneNumber` | string  | yes      | Must be unique for local accounts                          |
-| `profilePic`  | file    | no       | JPEG/PNG ≤ 5 MB, uploaded to Cloudinary if provided        |
-
-**Sample form-data:**
-```
-fullname: Jane Doe
-email: jane@example.com
-password: StrongPass!123
-phoneNumber: +2348012345678
-profilePic: <attach image>
-```
-
-**Success 201**
 ```json
 {
   "success": true,
-  "message": "User created successfully",
-  "token": "<jwt>",
-  "user": {
-    "_id": "...",
-    "email": "jane@example.com",
-    "role": "user",
-    "onboardingCompleted": false,
-    ...
+  "message": "Human readable summary",
+  "data": {}
+}
+```
+
+When a request fails, `success` becomes `false` and the `error` object contains structured metadata.
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Validation failed",
+    "details": []
+  },
+  "requestId": "<uuid>"
+}
+```
+
+Tokens are always returned inside `data.tokens` unless the endpoint only mutates a profile field.
+
+---
+
+## Conventions & Headers
+
+| Item | Value |
+| --- | --- |
+| Content type (JSON endpoints) | `application/json` |
+| Content type (file uploads) | `multipart/form-data` |
+| Authentication | `Authorization: Bearer <accessToken>` for protected routes |
+| Date handling | All timestamps are ISO 8601 strings in UTC |
+
+The backend also accepts the optional header `x-request-id` if the client wants to supply a request correlation ID; otherwise one is generated automatically.
+
+---
+
+## Endpoint catalogue
+
+| Method & Path | Requires auth? | Description |
+| --- | --- | --- |
+| `POST /register` | No | Create a local account via email + password. |
+| `POST /login` | No | Authenticate with email + password and receive tokens. |
+| `POST /refresh` | No | Exchange a valid refresh token for a new token pair. |
+| `POST /password/reset/request` | No | Issue a one-time password (OTP) for password reset. |
+| `POST /password/reset` | No | Confirm password reset using the OTP and email. |
+| `POST /email/verify/request` | No | Request an OTP for email verification. |
+| `POST /email/verify` | No | Verify email ownership using the OTP. |
+| `POST /onboarding` | Yes | Mark role-specific onboarding metadata. |
+| `POST /profile-image` | Yes + file | Upload or replace the authenticated user’s avatar. |
+| `GET /google/url` | No | Return the Google OAuth authorization URL. |
+| `POST /google/id-token` | No | Sign in/up using a client-side Google ID token. |
+| `POST /google/code` | No | Exchange a server-side Google authorization code. |
+
+---
+
+## Endpoint details
+
+### Register — `POST /register`
+
+Creates a local GridSpace user. Registration accepts JSON only; profile images must be uploaded after login via `/profile-image`.
+
+```jsonc
+{
+  "fullName": "Test User",
+  "email": "test.user@example.com",
+  "password": "Test123!@#",
+  "phoneNumber": "+2348012345678"
+}
+```
+
+Successful response (201):
+
+```json
+{
+  "success": true,
+  "message": "Registration successful",
+  "data": {
+    "user": {
+      "_id": "690328b0cb9bd6c3385cf2f1",
+      "fullName": "Test User",
+      "email": "test.user@example.com",
+      "role": "user",
+      "emailVerified": false,
+      "onboardingCompleted": false,
+      "profileImageUrl": null
+    },
+    "tokens": {
+      "accessToken": "<jwt>",
+      "refreshToken": "<refresh-jwt>"
+    }
   }
 }
 ```
 
----
+### Login — `POST /login`
 
-## 2. Sign In
-
-**POST** `/signin`
 ```json
 {
-  "email": "jane@example.com",
-  "password": "StrongPass!123"
+  "email": "test.user@example.com",
+  "password": "Test123!@#"
 }
 ```
 
-**Success 200**
+Returns the same payload structure as registration. Invalid credentials result in a `401` with `code: "UNAUTHORIZED"`.
+
+### Refresh tokens — `POST /refresh`
+
 ```json
 {
-  "success": true,
-  "message": "Login successful",
-  "token": "<jwt>",
-  "user": { ... }
+  "refreshToken": "<refresh-jwt>"
 }
 ```
 
-`401` when credentials are invalid.
+The refresh token is validated and rotated. Clients must persist the new pair since the previous refresh token becomes invalid.
 
----
+### Request password reset OTP — `POST /password/reset/request`
 
-## 3. Refresh Token
-
-**POST** `/refresh-token`
-
-- Requires a valid bearer token (the middleware re-issues a fresh JWT).
-- No request body.
-
-**Success 200**
 ```json
 {
-  "success": true,
-  "message": "Token refreshed successfully",
-  "token": "<new-jwt>",
-  "user": { ... }
+  "email": "test.user@example.com"
 }
 ```
 
-If the supplied token is missing or invalid, the middleware responds with `401`/`403`.
+Sends a 6-digit OTP via the configured SMTP provider. When `NODE_ENV !== "production"`, the payload includes a `debugToken` for QA flows.
 
----
+### Reset password — `POST /password/reset`
 
-## 4. Request Password Reset OTP
-
-**POST** `/request-password-reset`
 ```json
 {
-  "email": "jane@example.com"
-}
-```
-
-**Success 200**
-```json
-{
-  "success": true,
-  "message": "Password reset email sent to your email address",
-  "resetToken": "123456"
-}
-```
-
-`resetToken` echoes the OTP for non-production environments; clients should still rely on email delivery.
-
----
-
-## 5. Verify Password Reset OTP (Optional Pre-check)
-
-**POST** `/verify-password-reset-otp`
-```json
-{
-  "email": "jane@example.com",
-  "otp": "123456"
-}
-```
-
-Returns `200` with `{ success: true, message: "OTP verified" }` or `400` if invalid/expired.
-
----
-
-## 6. Reset Password
-
-**POST** `/reset-password`
-```json
-{
+  "email": "test.user@example.com",
   "token": "123456",
   "newPassword": "NewPass!456"
 }
 ```
 
-On success: `{ success: true, message: "Password reset successfully" }`. No tokens are returned; users should sign in again.
+On success the OTP is consumed and the standard `user + tokens` payload is returned, allowing the client to treat the action as an immediate sign-in.
 
----
+### Request email verification OTP — `POST /email/verify/request`
 
-## 7. Request Email Verification OTP
+Request shape mirrors the password reset request. OTP delivery channel and `debugToken` logic are the same.
 
-**POST** `/request-email-verification`
+### Verify email — `POST /email/verify`
+
 ```json
 {
-  "email": "jane@example.com"
+  "email": "test.user@example.com",
+  "token": "654321"
 }
 ```
 
-**Success 200**
+Response:
+
 ```json
 {
   "success": true,
-  "message": "Verification OTP sent to your email address",
-  "remainingAttempts": 3
-}
-```
-
-Requests made while a valid OTP already exists return the same message without sending a new email and include the remaining retry count. Rate limiting applies after three failed attempts.
-
----
-
-## 8. Verify Email
-
-**POST** `/verify-email`
-```json
-{
-  "email": "jane@example.com",
-  "otp": "654321"
-}
-```
-
-**Success 200**
-```json
-{
-  "success": true,
-  "message": "Email verified successfully"
-}
-```
-
-The endpoint increments attempt counters and expires/cleans up OTPs automatically.
-
----
-
-## 9. Resend Email Verification OTP
-
-**POST** `/resend-email-verification`
-```json
-{
-  "email": "jane@example.com"
-}
-```
-
-Response mirrors the request endpoint with a fresh OTP when successful.
-
----
-
-## 10. Complete Onboarding
-
-**POST** `/onboarding`
-
-- Requires bearer authentication.
-- Accepts optional multipart upload for profile pictures.
-
-```json
-{
-  "role": "host",
-  "location": "Lagos, NG",
-  "purposes": ["events", "workshop"]
-}
-```
-
-- `role` must be one of `user`, `host`, or `admin`.
-- `purposes` can be an array or a JSON string (controller parses both).
-- Email verification is recommended but not enforced server-side.
-
-**Success 200**
-```json
-{
-  "success": true,
-  "message": "Onboarding completed successfully",
-  "user": {
-    "_id": "...",
-    "role": "host",
-    "onboardingCompleted": true,
-    "purposes": ["events", "workshop"],
-    "location": "Lagos, NG",
-    ...
+  "message": "Email verified successfully",
+  "data": {
+    "user": {
+      "_id": "690328b0cb9bd6c3385cf2f1",
+      "emailVerified": true,
+      "verifiedAt": "2025-10-30T09:12:00.123Z"
+    }
   }
 }
 ```
 
----
+### Complete onboarding — `POST /onboarding`
 
-## 11. Profile Management
+Protected endpoint; requires a valid bearer token.
 
-- **GET** `/profile` — returns the authenticated user.
-- **PUT** `/profile` — multipart form; supports `fullname`, `phoneNumber`, and optional `profilePic` upload.
-
-Both require bearer authentication and respond with `{ success, message, user }`.
-
----
-
-## 12. Change Password
-
-**PUT** `/change-password`
-```json
+```jsonc
 {
-  "currentPassword": "StrongPass!123",
-  "newPassword": "StrongerPass!456"
+  "role": "host",
+  "location": "Lagos, NG",
+  "purposes": ["events", "workshop"] // array or JSON string accepted
 }
 ```
 
-Responds with `{ success: true, message: "Password changed successfully" }` when the current password matches.
+Marks `onboardingCompleted: true` and persists the submitted metadata. The updated user profile is returned.
 
----
+### Upload profile image — `POST /profile-image`
 
-## 13. Logout
+- Requires bearer token
+- `multipart/form-data` with a single field `profileImage`
+- Accepts `image/jpeg`, `image/png`, `image/webp` up to 5 MB
 
-**POST** `/logout`
+Example using curl:
 
-Stateless JWT logout; simply returns `{ success: true, message: "Logged out successfully" }`. Clients should delete stored tokens.
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <accessToken>" \
+  -F "profileImage=@./avatar.png" \
+  http://localhost:3000/api/v1/auth/profile-image
+```
 
----
+Successful response:
 
-## 14. Delete Account
-
-**DELETE** `/account`
 ```json
 {
-  "password": "StrongPass!123"
+  "success": true,
+  "message": "Profile image uploaded",
+  "data": {
+    "user": {
+      "_id": "690328b0cb9bd6c3385cf2f1",
+      "profileImageUrl": "https://res.cloudinary.com/.../profile.png"
+    },
+    "profileImageUrl": "https://res.cloudinary.com/.../profile.png"
+  }
 }
 ```
 
-Deletes the authenticated user after password confirmation.
+Validation failures surface as `400 BAD_REQUEST` with descriptive messages (e.g. invalid mime type, missing file, file too large). If Cloudinary is not configured, a static placeholder URL is returned instead.
+
+### Google OAuth flows
+
+| Flow | Endpoint | Notes |
+| --- | --- | --- |
+| Authorization URL | `GET /google/url?state=<optional>` | Returns a pre-configured consent URL clients can redirect to. |
+| Client-side ID token | `POST /google/id-token` | Accepts a Google ID token obtained on the frontend. |
+| Server-side auth code | `POST /google/code` | Exchanges the code for tokens using the backend’s OAuth credentials. |
+
+Both exchange endpoints return the standard `user + tokens` response. All Google-related requests require the environment variables `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and `GOOGLE_OAUTH_REDIRECT_URI` to be present.
 
 ---
 
-## 15. Google OAuth Flows
+## Error reference
 
-Environment variables used: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
+| HTTP status | `error.code` | When it appears |
+| --- | --- | --- |
+| `400` | `BAD_REQUEST` | Validation issues, OTP misuse, invalid file type/size. |
+| `401` | `UNAUTHORIZED` | Missing/invalid bearer token or incorrect credentials. |
+| `403` | `FORBIDDEN` | User lacks the required role (e.g., onboarding not completed). |
+| `404` | `NOT_FOUND` | User lookup failures (rare for this module). |
+| `429` | `RATE_LIMITED` | Too many requests to password reset/email verification. |
+| `500` | `INTERNAL_ERROR` | Unexpected server error (requestId logged for traceability). |
 
-### a. Client-side ID Token Flow
-
-- **POST** `/google`
-```json
-{
-  "idToken": "<google-id-token>"
-}
-```
-- Response mirrors local sign-in (`token` + `user`).
-
-### b. Server-side Authorization Code Flow
-
-1. **GET** `/google/url?state=optional` → `{ success, message, authUrl }`
-2. User consents with Google → your frontend receives `code` (and optional `state`).
-3. **GET** `/google/callback?code=...&state=...` — backend exchanges the code, issues a JWT, and redirects to `FRONTEND_URL` with query params `token` and `success`.
-
-### c. Error Handling
-
-- Invalid or missing Google credentials typically surface as `500` responses with `message: "Google authentication failed"`.
-- When configuration is absent, the controllers throw before reaching Google APIs; check environment variables during deployment.
-
-After successful Google sign-in, new users should be guided through `/onboarding` to capture `role` and `location` so `onboardingCompleted` becomes `true`.
+All error responses include `requestId`; please surface it in support tickets to speed up debugging.
 
 ---
 
-## Error Patterns
+## Suggested manual test flow
 
-While many controllers return a simple `{ success: false, message: "..." }`, validation errors may include additional context such as `errors` arrays. Clients should always inspect the `message` field and treat non-200 codes as failures.
+1. `POST /register`
+2. `POST /login`
+3. `POST /refresh` (store new tokens)
+4. `POST /email/verify/request` → `POST /email/verify`
+5. `POST /onboarding`
+6. `POST /profile-image` (attach JPEG <5 MB)
+7. `POST /password/reset/request` → `POST /password/reset`
+8. Exercise Google flows: `GET /google/url`, `POST /google/id-token`, `POST /google/code`
 
----
-
-## Suggested Test Flow
-
-1. Sign up (local) → capture returned JWT and ensure user is created.
-2. Sign in → confirm JWT and payload.
-3. Refresh token → verify a new JWT is issued while the old one is still valid.
-4. Request/verify email OTP → ensure `emailVerified` flips to `true`.
-5. Request/reset password → confirm password changes and old token becomes unusable after logout.
-6. Complete onboarding → verify `role`, `location`, and `onboardingCompleted` persist.
-7. Exercise Google flows → validate new accounts are created or existing ones linked.
+Following this order mirrors the integration tests and ensures the frontend wiring aligns with backend expectations.

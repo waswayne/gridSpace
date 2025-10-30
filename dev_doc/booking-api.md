@@ -1,66 +1,87 @@
 # Booking API (v1)
 
-Base URL: `/api/v1/bookings`
+> Base path: `/api/v1/bookings`
 
-This guide documents the booking endpoints consumed by the web and mobile clients. Responses follow the standard envelope:
+### Quick navigation
+- [Overview](#overview)
+- [Conventions & request headers](#conventions--request-headers)
+- [Endpoint catalogue](#endpoint-catalogue)
+- [Endpoint details](#endpoint-details)
+- [Status & payment reference](#status--payment-reference)
+- [Frontend integration tips](#frontend-integration-tips)
+
+---
+
+## Overview
+Bookings connect guests to host spaces. The service manages availability checks, pricing, refunds, and host workflows. Every JSON response uses the standard envelope:
 
 ```json
 {
   "success": true,
-  "message": "Human readable summary",
-  "data": { ... }
+  "message": "Bookings retrieved successfully",
+  "data": {}
 }
 ```
 
-Errors follow the shared format:
+On failure:
 
 ```json
 {
   "success": false,
-  "message": "Validation failed",
-  "errors": ["Optional array of validation messages"]
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Validation failed",
+    "details": []
+  }
 }
 ```
 
-## Authentication & Roles
-
-| Endpoint                               | Auth | Roles              | Notes                                                            |
-| -------------------------------------- | ---- | ------------------ | ---------------------------------------------------------------- |
-| `GET /`                                | Yes  | Any authenticated   | Returns active bookings for the requesting user.                 |
-| `GET /host`                            | Yes  | `host`, `admin`     | Lists bookings across spaces owned by the host.                  |
-| `POST /`                               | Yes  | Any authenticated   | Guests create bookings for a space.                              |
-| `PUT /:id/status`                      | Yes  | `host`, `admin`     | Host-only status transitions (confirm, cancel, mark in-progress).|
-| `DELETE /:id/cancel`                   | Yes  | Any authenticated   | Booking owner can cancel prior to start (policy enforced).       |
-| `POST /:id/reschedule`                 | Yes  | Any authenticated   | Booking owner reschedules to a new time slot if eligible.        |
-
-> All endpoints use JWT bearer authentication. Attach the access token via `Authorization: Bearer <token>`.
-
-## Domain Overview
-
-- **Booking types**: `hourly`, `daily`, `weekly`, `monthly`. `basePrice` derives from the space rate; total = base + markup (15% default).
-- **Statuses**: `pending → upcoming → in_progress → completed`. `cancelled` is a terminal state; `pending` expires after 5 minutes if not confirmed.
+### Domain primer
+- **Booking types**: `hourly`, `daily`, `weekly`, `monthly` (default `hourly`).
+- **Lifecycle**: `pending → upcoming → in_progress → completed` (`cancelled` is terminal; `pending` auto-expires after 5 mins if not confirmed).
 - **Payment states**: `pending`, `paid`, `refunded`, `partially_refunded`, `failed`.
-- **Refund policy**:
-  - Cancel ≥48h before start → 100% refund.
-  - Cancel 2–48h before start → 50% refund.
-  - Cancel <2h before start → no refund.
-- **Virtual flags**: `canCancel` and `canReschedule` expose whether the booking is still modifiable.
+- **Refund policy**: ≥48h → 100%, 2–48h → 50%, <2h → 0% (reflected in response metadata).
+- **Virtual helpers**: `canCancel` / `canReschedule` save the frontend from duplicating cutoff logic.
 
-## Reference
+---
 
-### 1. List My Bookings
+## Conventions & request headers
 
-`GET /api/v1/bookings`
+| Item | Value |
+| --- | --- |
+| Auth | `Authorization: Bearer <accessToken>` (required on every endpoint) |
+| Content type | `application/json` |
+| Pagination | `page` (1-based) + `limit` (1–100, default 10) |
+| Date/time | ISO 8601 UTC strings |
 
-Query parameters:
+---
 
-| Name     | Type                | Description                                            |
-| -------- | ------------------- | ------------------------------------------------------ |
-| `status` | enum                | Optional filter (`pending`, `upcoming`, `in_progress`, `completed`, `cancelled`). |
-| `page`   | integer (default 1) | Pagination (1-based).                                  |
-| `limit`  | integer (default 10)| Page size (1–100).                                     |
+## Endpoint catalogue
 
-Sample response:
+| Method & path | Roles | Description |
+| --- | --- | --- |
+| `GET /` | Any authenticated | Return bookings for the requesting user (guest view).
+| `GET /host` | `host`, `admin` | Host dashboard listing across owned spaces.
+| `POST /` | Any authenticated | Create a booking for a space (conflict-checked).
+| `PUT /:id/status` | `host`, `admin` | Transition booking lifecycle state.
+| `DELETE /:id/cancel` | Booking owner | Cancel ahead of start; refunds applied.
+| `POST /:id/reschedule` | Booking owner | Move an upcoming booking to a new slot.
+
+---
+
+## Endpoint details
+
+### List my bookings — `GET /`
+
+Query params:
+
+| Name | Type | Notes |
+| --- | --- | --- |
+| `status` | enum | `pending`, `upcoming`, `in_progress`, `completed`, `cancelled` |
+| `page` | integer | 1-based (default 1) |
+| `limit` | integer | Default 10, max 100 |
+
+Response excerpt:
 
 ```json
 {
@@ -89,8 +110,7 @@ Sample response:
         "hostEarnings": 60000,
         "canCancel": true,
         "canReschedule": true,
-        "createdAt": "2025-10-29T08:31:11.812Z",
-        "updatedAt": "2025-10-29T08:31:11.812Z"
+        "createdAt": "2025-10-29T08:31:11.812Z"
       }
     ],
     "pagination": {
@@ -104,145 +124,82 @@ Sample response:
 }
 ```
 
-### 2. List Host Bookings
+### List host bookings — `GET /host`
+- Requires host/admin token.
+- Query params identical to `GET /`.
+- Each entry pre-populates guest profile data for dashboards.
 
-`GET /api/v1/bookings/host`
+### Create booking — `POST /`
 
-- Requires host/admin token. Returns bookings across all active spaces owned by the host. Each record populates guest profile info for dashboards.
-- Same query params as user listing (`status`, `page`, `limit`).
+Body:
 
-### 3. Create Booking
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `spaceId` | string | Yes | Mongo ObjectId of the target space. |
+| `startTime` | ISO string | Yes | Must be in the future. |
+| `endTime` | ISO string | Yes | After `startTime`. |
+| `bookingType` | enum | No | Defaults to `hourly`. |
+| `guestCount` | integer | No | Defaults to 1, capped by space capacity. |
+| `specialRequests` | string | No | ≤500 chars, plain text. |
 
-`POST /api/v1/bookings`
+Success payload mirrors the booking object and includes pricing breakdown (totalAmount, hostEarnings). Conflicts surface as `400 BAD_REQUEST` with message `"The selected time slot is already booked"`.
 
-Body schema:
+### Update booking status — `PUT /:id/status`
 
-| Field             | Type       | Required | Notes                                   |
-| ----------------- | ---------- | -------- | --------------------------------------- |
-| `spaceId`         | string     | Yes      | Mongo ObjectId of the space.            |
-| `startTime`       | ISO string | Yes      | Future timestamp.                       |
-| `endTime`         | ISO string | Yes      | Must be after `startTime`.              |
-| `bookingType`     | enum       | No       | Defaults to `hourly`.                   |
-| `guestCount`      | integer    | No       | Defaults to 1; capped by space capacity.|
-| `specialRequests` | string     | No       | Optional notes (≤500 chars).            |
+Body:
 
-Response:
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `status` | enum | Yes | `upcoming`, `in_progress`, `completed`, `cancelled`. |
+| `hostNotes` | string | No | Persisted on the booking for internal reference. |
+| `cancellationReason` | enum | Conditional | Mandatory when setting `status=cancelled`. |
 
-```json
-{
-  "success": true,
-  "message": "Booking created successfully",
-  "data": {
-    "_id": "6661d...",
-    "status": "pending",
-    "paymentStatus": "pending",
-    "expiresAt": "2025-10-29T08:36:11.812Z",
-    "userId": "665f...",
-    "spaceId": "664a...",
-    "startTime": "2025-11-12T09:00:00.000Z",
-    "endTime": "2025-11-12T13:00:00.000Z",
-    "bookingType": "hourly",
-    "guestCount": 4,
-    "totalAmount": 46000,
-    "hostEarnings": 40000
-  }
-}
-```
+Invalid transitions return `400` with a clarifying message; attempting to modify a booking owned by another host returns `403`.
 
-Common errors:
+### Cancel booking — `DELETE /:id/cancel`
+- Only booking owner can cancel.
+- Allowed when state is `pending` or `upcoming` and start time is ≥2h away.
+- Response includes `data.refund` metadata to drive UI copy (amount + policy code).
 
-- `400 BAD_REQUEST` – validation failure, capacity exceeded, or conflict detected (`"The selected time slot is already booked"`).
-- `404 NOT_FOUND` – space no longer available/inactive.
+### Reschedule booking — `POST /:id/reschedule`
 
-### 4. Update Booking Status (Host/Admin)
+Body:
 
-`PUT /api/v1/bookings/:id/status`
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `newStartTime` | ISO string | Yes | Must be in the future. |
+| `newEndTime` | ISO string | Yes | After `newStartTime`. |
+| `reason` | string | No | Optional note shown to hosts. |
 
-Body schema:
+The service validates conflicts (excluding the current booking) and appends an entry to `rescheduleHistory`.
 
-| Field                | Type   | Required | Notes                                                      |
-| -------------------- | ------ | -------- | ---------------------------------------------------------- |
-| `status`             | enum   | Yes      | One of `upcoming`, `in_progress`, `completed`, `cancelled`.|
-| `hostNotes`          | string | No       | Extra context stored on the booking.                      |
-| `cancellationReason` | enum   | Cond.    | Required when `status = cancelled` (`host_request`, etc.). |
+---
 
-Successful response shape mirrors `BookingResponse` (updated booking object).
+## Status & payment reference
 
-- Invalid transitions (e.g., upcoming → completed) return `400` with `"Cannot transition"` message.
-- Modifying a booking not owned by the host returns `403`.
+| Booking status | Description | Typical transitions |
+| --- | --- | --- |
+| `pending` | Awaiting host confirmation/payment. Auto-expires after 5 mins.| → `upcoming`, `cancelled` |
+| `upcoming` | Confirmed and scheduled for the future. | → `in_progress`, `cancelled` |
+| `in_progress` | Current time within booking window. | → `completed` |
+| `completed` | Finished booking. | Terminal |
+| `cancelled` | Cancelled by host/user/system. | Terminal |
 
-### 5. Cancel Booking (Guest)
+| Payment status | Meaning |
+| --- | --- |
+| `pending` | Awaiting payment confirmation. |
+| `paid` | Funds settled; booking ready. |
+| `refunded` | Full refund issued. |
+| `partially_refunded` | Partial refund (typically 50%). |
+| `failed` | Payment attempt failed. |
 
-`DELETE /api/v1/bookings/:id/cancel`
+---
 
-- Cancels only if `status` is `pending` or `upcoming` and start time is ≥2h away.
-- Response includes refund metadata:
+## Frontend integration tips
 
-```json
-{
-  "success": true,
-  "message": "Booking cancelled successfully",
-  "data": {
-    "booking": {
-      "_id": "6661d...",
-      "status": "cancelled",
-      "paymentStatus": "refunded"
-    },
-    "refund": {
-      "amount": 46000,
-      "type": "full_refund_48h"
-    }
-  }
-}
-```
-
-Errors:
-
-- `400 BAD_REQUEST` – booking too close to start (`"Cannot cancel booking within 2 hours"`).
-- `403 FORBIDDEN` – user trying to cancel someone else’s booking.
-
-### 6. Reschedule Booking
-
-`POST /api/v1/bookings/:id/reschedule`
-
-Body schema:
-
-| Field           | Type       | Required | Notes                               |
-| --------------- | ---------- | -------- | ----------------------------------- |
-| `newStartTime`  | ISO string | Yes      | Must be future date.                |
-| `newEndTime`    | ISO string | Yes      | Must be after `newStartTime`.       |
-| `reason`        | string     | No       | Optional note.                      |
-
-- Checks conflict against other active bookings on the same space (excluding current booking).
-- Records the change in `rescheduleHistory`.
-
-Response mirrors the booking object with updated times.
-
-## Status Reference
-
-| Status        | Description                                | Typical Transitions                     |
-| ------------- | ------------------------------------------ | --------------------------------------- |
-| `pending`     | Newly created; awaiting host confirmation or payment. | → `upcoming`, `cancelled`. Expires after 5 minutes. |
-| `upcoming`    | Confirmed future booking.                  | → `in_progress`, `cancelled`.           |
-| `in_progress` | Ongoing booking (current time within window). | → `completed`.                           |
-| `completed`   | Finished booking.                          | Terminal.                               |
-| `cancelled`   | Cancelled by host/user/system.             | Terminal.                               |
-
-## Payment Status Reference
-
-| Payment Status        | Meaning                                          |
-| --------------------- | ------------------------------------------------ |
-| `pending`             | Awaiting payment confirmation.                   |
-| `paid`                | Payment settled; booking ready to start.         |
-| `failed`              | Payment attempt failed.                          |
-| `refunded`            | Full refund issued.                              |
-| `partially_refunded`  | Partial refund (e.g., 50%).                       |
-
-## Notes for Frontend Integrators
-
-- **Polling**: For pending bookings awaiting host confirmation, poll `GET /bookings` every 10–15s (or use web sockets when available) until status changes.
-- **Conflict messaging**: Surface user-friendly copy for conflict errors (HTTP 400, message `"The selected time slot is already booked"`).
-- **Time zone**: All timestamps are ISO strings in UTC; convert to local time on the client.
-- **Virtual flags**: Trust `canCancel` and `canReschedule` to enable/disable UI actions instead of duplicating cutoff logic.
-- **Host dashboards**: Use `GET /bookings/host` for lists and `PUT /bookings/:id/status` for confirmations/cancellations.
-- **Swagger UI**: Full schema examples are available at `/docs` in local dev.
+1. **Polling** — Poll `GET /bookings` while a booking remains `pending` (10–15s) until status stabilises. Real-time sockets TBD.
+2. **Conflict UX** — Show human-friendly copy when receiving `400` with `"The selected time slot is already booked"`.
+3. **Time zones** — Convert all ISO timestamps from UTC to the viewer’s locale.
+4. **Action gating** — Use `canCancel` / `canReschedule` booleans instead of re-implementing policy rules client-side.
+5. **Host dashboards** — Combine `GET /host` with `PUT /:id/status` to power confirmation/cancellation flows.
+6. **Swagger reference** — Full schema examples live at `/docs` during local development.
