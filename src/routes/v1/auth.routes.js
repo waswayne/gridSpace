@@ -1,9 +1,10 @@
-import { Router } from 'express';
-import { AuthController } from '../../controllers/auth.controller.js';
-import { validateRequest } from '../../middlewares/validate.js';
-import { authSchemas } from '../../validations/auth.validation.js';
-import { upload } from '../../config/multer.js';
-import { authenticate } from '../../middlewares/auth.js';
+import { Router } from "express";
+import { AuthController } from "../../controllers/auth.controller.js";
+import { validateRequest } from "../../middlewares/validate.js";
+import { authSchemas } from "../../validations/auth.validation.js";
+import { upload } from "../../config/multer.js";
+import { authenticate } from "../../middlewares/auth.js";
+import { validateProfileImage } from "../../middlewares/validateProfileImage.js";
 
 const router = Router();
 const authController = new AuthController();
@@ -14,26 +15,34 @@ const authController = new AuthController();
  *   post:
  *     tags: [Auth]
  *     summary: Register a new user account
+ *     description: |
+ *       Creates a new user account. Profile images must be uploaded separately using
+ *       the /api/v1/auth/profile-image endpoint after registering and obtaining a token.
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:
  *               fullName:
  *                 type: string
+ *                 description: User's full name
+ *                 example: "John Doe"
  *               email:
  *                 type: string
  *                 format: email
+ *                 description: User's email address (must be unique)
+ *                 example: "john.doe@example.com"
  *               password:
  *                 type: string
  *                 format: password
+ *                 description: User's password (min 6 characters)
+ *                 example: "secureP@ssw0rd"
  *               phoneNumber:
  *                 type: string
- *               profileImage:
- *                 type: string
- *                 format: binary
+ *                 description: Optional phone number with country code
+ *                 example: "+2348012345678"
  *             required:
  *               - fullName
  *               - email
@@ -41,12 +50,38 @@ const authController = new AuthController();
  *     responses:
  *       '201':
  *         description: Registration successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Registration successful"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     tokens:
+ *                       type: object
+ *                       properties:
+ *                         accessToken:
+ *                           type: string
+ *                         refreshToken:
+ *                           type: string
  *       '400':
- *         description: Validation error
+ *         description: Validation error or email already in use
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/register',
-  upload.single('profileImage'),
+  "/register",
   validateRequest(authSchemas.register),
   authController.register
 );
@@ -79,7 +114,7 @@ router.post(
  *       '401':
  *         description: Invalid credentials
  */
-router.post('/login', validateRequest(authSchemas.login), authController.login);
+router.post("/login", validateRequest(authSchemas.login), authController.login);
 
 /**
  * @openapi
@@ -104,7 +139,11 @@ router.post('/login', validateRequest(authSchemas.login), authController.login);
  *       '401':
  *         description: Invalid refresh token
  */
-router.post('/refresh', validateRequest(authSchemas.refresh), authController.refresh);
+router.post(
+  "/refresh",
+  validateRequest(authSchemas.refresh),
+  authController.refresh
+);
 
 /**
  * @openapi
@@ -133,7 +172,7 @@ router.post('/refresh', validateRequest(authSchemas.refresh), authController.ref
  *         description: Email delivery failed (SMTP not configured)
  */
 router.post(
-  '/password/reset/request',
+  "/password/reset/request",
   validateRequest(authSchemas.requestPasswordReset),
   authController.requestPasswordReset
 );
@@ -170,7 +209,7 @@ router.post(
  *         description: Invalid or expired token
  */
 router.post(
-  '/password/reset',
+  "/password/reset",
   validateRequest(authSchemas.resetPassword),
   authController.resetPassword
 );
@@ -202,7 +241,7 @@ router.post(
  *         description: Email delivery failed (SMTP not configured)
  */
 router.post(
-  '/email/verify/request',
+  "/email/verify/request",
   validateRequest(authSchemas.requestEmailVerification),
   authController.requestEmailVerification
 );
@@ -235,7 +274,7 @@ router.post(
  *         description: Invalid or expired token
  */
 router.post(
-  '/email/verify',
+  "/email/verify",
   validateRequest(authSchemas.verifyEmail),
   authController.verifyEmail
 );
@@ -276,7 +315,7 @@ router.post(
  *         description: Unauthorized
  */
 router.post(
-  '/onboarding',
+  "/onboarding",
   authenticate,
   validateRequest(authSchemas.onboarding),
   authController.completeOnboarding
@@ -301,7 +340,11 @@ router.post(
  *       '400':
  *         description: Google OAuth not configured
  */
-router.get('/google/url', validateRequest(authSchemas.googleAuthUrl), authController.googleAuthUrl);
+router.get(
+  "/google/url",
+  validateRequest(authSchemas.googleAuthUrl),
+  authController.googleAuthUrl
+);
 
 /**
  * @openapi
@@ -330,7 +373,7 @@ router.get('/google/url', validateRequest(authSchemas.googleAuthUrl), authContro
  *         description: Invalid Google token or misconfiguration
  */
 router.post(
-  '/google/id-token',
+  "/google/id-token",
   validateRequest(authSchemas.googleIdToken),
   authController.googleSignInWithIdToken
 );
@@ -364,9 +407,80 @@ router.post(
  *         description: Invalid authorization code or misconfiguration
  */
 router.post(
-  '/google/code',
+  "/google/code",
   validateRequest(authSchemas.googleCode),
   authController.googleSignInWithCode
+);
+
+/**
+ * @openapi
+ * /api/v1/auth/profile-image:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Upload or update user profile image
+ *     description: |
+ *       Uploads a profile image for the authenticated user. The image will be
+ *       processed, stored, and a CDN URL will be set on the user's profile.
+ *
+ *       Supported formats: JPEG, PNG, WebP
+ *       Maximum file size: 5MB
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image file to upload (JPEG, PNG, or WebP, max 5MB)
+ *             required:
+ *               - profileImage
+ *     responses:
+ *       '200':
+ *         description: Profile image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Profile image uploaded"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     profileImageUrl:
+ *                       type: string
+ *                       format: uri
+ *                       description: CDN URL of the uploaded image
+ *       '400':
+ *         description: Invalid file type or size
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       '401':
+ *         description: Authentication token missing or invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post(
+  "/profile-image",
+  authenticate,
+  upload.single("profileImage"),
+  validateProfileImage,
+  authController.uploadProfileImage
 );
 
 export { router as authRouter };

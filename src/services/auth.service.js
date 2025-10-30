@@ -1,15 +1,19 @@
-import jwt from 'jsonwebtoken';
-import sanitizeHtml from 'sanitize-html';
-import cloudinary from 'cloudinary';
-import stream from 'node:stream';
-import { UserModel } from '../models/user.model.js';
-import { TokenService } from './token.service.js';
-import { PasswordResetTokenModel } from '../models/password-reset-token.model.js';
-import { EmailVerificationTokenModel } from '../models/email-verification-token.model.js';
-import { MessagingHookService } from './messaging-hook.service.js';
-import { EmailService } from './email.service.js';
-import { GoogleOAuthService } from './google-oauth.service.js';
-import { AppError, BadRequestError, UnauthorizedError } from '../utils/errors.js';
+import jwt from "jsonwebtoken";
+import sanitizeHtml from "sanitize-html";
+import cloudinary from "cloudinary";
+import stream from "node:stream";
+import { UserModel } from "../models/user.model.js";
+import { TokenService } from "./token.service.js";
+import { PasswordResetTokenModel } from "../models/password-reset-token.model.js";
+import { EmailVerificationTokenModel } from "../models/email-verification-token.model.js";
+import { MessagingHookService } from "./messaging-hook.service.js";
+import { EmailService } from "./email.service.js";
+import { GoogleOAuthService } from "./google-oauth.service.js";
+import {
+  AppError,
+  BadRequestError,
+  UnauthorizedError,
+} from "../utils/errors.js";
 
 const sanitizeValue = (value) => {
   if (value === null || value === undefined) {
@@ -20,7 +24,7 @@ const sanitizeValue = (value) => {
     return value.map((item) => sanitizeValue(item));
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return sanitizeHtml(value, {
       allowedTags: [],
       allowedAttributes: {},
@@ -40,7 +44,10 @@ const sanitizePayload = (payload = {}) => {
 export class AuthService {
   constructor({
     userModel = UserModel,
-    tokenService = new TokenService({ passwordResetTokenModel: PasswordResetTokenModel, emailVerificationTokenModel: EmailVerificationTokenModel }),
+    tokenService = new TokenService({
+      passwordResetTokenModel: PasswordResetTokenModel,
+      emailVerificationTokenModel: EmailVerificationTokenModel,
+    }),
     cloudinaryClient = cloudinary.v2,
     config,
     messagingHookService = new MessagingHookService(),
@@ -48,7 +55,7 @@ export class AuthService {
     googleOAuthService,
   } = {}) {
     if (!config) {
-      throw new Error('AuthService requires config');
+      throw new Error("AuthService requires config");
     }
 
     this.userModel = userModel;
@@ -57,16 +64,24 @@ export class AuthService {
     this.config = config;
     this.messagingHooks = messagingHookService;
     this.emailService = emailService;
+    this.cloudinaryEnabled = Boolean(
+      config.cloudinary?.cloudName &&
+        config.cloudinary?.apiKey &&
+        config.cloudinary?.apiSecret
+    );
 
     const hasGoogleConfig = Boolean(config.googleOAuth?.clientId);
     this.googleOAuth =
-      googleOAuthService ?? (hasGoogleConfig ? new GoogleOAuthService({ config }) : null);
+      googleOAuthService ??
+      (hasGoogleConfig ? new GoogleOAuthService({ config }) : null);
 
-    this.cloudinary.config({
-      cloud_name: config.cloudinary?.cloudName,
-      api_key: config.cloudinary?.apiKey,
-      api_secret: config.cloudinary?.apiSecret,
-    });
+    if (this.cloudinaryEnabled) {
+      this.cloudinary.config({
+        cloud_name: config.cloudinary?.cloudName,
+        api_key: config.cloudinary?.apiKey,
+        api_secret: config.cloudinary?.apiSecret,
+      });
+    }
   }
 
   sanitize(input) {
@@ -86,7 +101,10 @@ export class AuthService {
   }
 
   generateAuthTokens(user) {
-    const accessToken = this.generateAccessToken({ sub: user.id, role: user.role });
+    const accessToken = this.generateAccessToken({
+      sub: user.id,
+      role: user.role,
+    });
     const refreshToken = this.generateRefreshToken({ sub: user.id });
 
     return { accessToken, refreshToken };
@@ -96,7 +114,7 @@ export class AuthService {
     try {
       return jwt.verify(token, this.config.auth.refreshTokenSecret);
     } catch (error) {
-      throw new UnauthorizedError('Invalid refresh token');
+      throw new UnauthorizedError("Invalid refresh token");
     }
   }
 
@@ -105,15 +123,21 @@ export class AuthService {
       return null;
     }
 
+    if (!this.cloudinaryEnabled) {
+      return "https://static.gridspace.com/placeholder/profile.png";
+    }
+
     return new Promise((resolve, reject) => {
       const uploadStream = this.cloudinary.uploader.upload_stream(
         {
-          folder: 'gridspace/profiles',
-          public_id: originalName ? originalName.replace(/[^a-zA-Z0-9-_]/g, '_') : undefined,
+          folder: "gridspace/profiles",
+          public_id: originalName
+            ? originalName.replace(/[^a-zA-Z0-9-_]/g, "_")
+            : undefined,
           overwrite: true,
           transformation: [
-            { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-            { quality: 'auto', fetch_format: 'auto' },
+            { width: 400, height: 400, crop: "fill", gravity: "face" },
+            { quality: "auto", fetch_format: "auto" },
           ],
         },
         (error, result) => {
@@ -127,23 +151,45 @@ export class AuthService {
       );
 
       const readable = stream.Readable.from(fileBuffer);
-      readable.on('error', reject);
+      readable.on("error", reject);
       readable.pipe(uploadStream);
     });
+  }
+
+  async updateProfileImage(userId, fileBuffer, originalName) {
+    if (!userId || !fileBuffer) {
+      throw new BadRequestError("User id and file buffer are required");
+    }
+
+    const url = await this.uploadProfileImage(fileBuffer, originalName);
+
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new BadRequestError("User not found");
+    }
+
+    user.profileImageUrl = url;
+    await user.save();
+
+    return { user, profileImageUrl: url };
   }
 
   async registerUser(payload) {
     const sanitized = this.sanitize(payload);
 
-    const existingUser = await this.userModel.findOne({ email: sanitized.email });
+    const existingUser = await this.userModel.findOne({
+      email: sanitized.email,
+    });
     if (existingUser) {
-      throw new BadRequestError('Email already in use');
+      throw new BadRequestError("Email already in use");
     }
 
     if (sanitized.phoneNumber) {
-      const phoneOwner = await this.userModel.findOne({ phoneNumber: sanitized.phoneNumber });
+      const phoneOwner = await this.userModel.findOne({
+        phoneNumber: sanitized.phoneNumber,
+      });
       if (phoneOwner) {
-        throw new BadRequestError('Phone number already in use');
+        throw new BadRequestError("Phone number already in use");
       }
     }
 
@@ -152,7 +198,7 @@ export class AuthService {
       email: sanitized.email,
       password: sanitized.password,
       profileImageUrl: sanitized.profileImageUrl ?? null,
-      authMethod: sanitized.authMethod ?? 'local',
+      authMethod: sanitized.authMethod ?? "local",
     };
 
     if (sanitized.phoneNumber) {
@@ -176,7 +222,7 @@ export class AuthService {
     const user = await this.userModel.findOne({ email: sanitized.email });
 
     if (!user || !(await user.comparePassword(sanitized.password))) {
-      throw new UnauthorizedError('Invalid credentials');
+      throw new UnauthorizedError("Invalid credentials");
     }
 
     return { user, ...this.generateAuthTokens(user) };
@@ -188,7 +234,7 @@ export class AuthService {
     const user = await this.userModel.findById(payload.sub);
 
     if (!user) {
-      throw new UnauthorizedError('User not found for refresh token');
+      throw new UnauthorizedError("User not found for refresh token");
     }
 
     return { user, ...this.generateAuthTokens(user) };
@@ -199,7 +245,7 @@ export class AuthService {
     const user = await this.userModel.findOne({ email: sanitized.email });
 
     if (!user) {
-      throw new BadRequestError('Account with this email does not exist');
+      throw new BadRequestError("Account with this email does not exist");
     }
 
     const token = await this.tokenService.createPasswordResetToken(user.email);
@@ -211,9 +257,9 @@ export class AuthService {
     });
 
     if (!emailResult?.success) {
-      throw new AppError('Failed to send password reset email', {
+      throw new AppError("Failed to send password reset email", {
         statusCode: 500,
-        code: 'EMAIL_SEND_FAILED',
+        code: "EMAIL_SEND_FAILED",
         details: emailResult?.error ?? null,
       });
     }
@@ -230,19 +276,22 @@ export class AuthService {
     );
 
     if (!isValid) {
-      throw new BadRequestError('Invalid or expired password reset token');
+      throw new BadRequestError("Invalid or expired password reset token");
     }
 
     const user = await this.userModel.findOne({ email: sanitized.email });
 
     if (!user) {
-      throw new BadRequestError('Account with this email does not exist');
+      throw new BadRequestError("Account with this email does not exist");
     }
 
     user.password = sanitized.newPassword;
     await user.save();
 
-    await this.tokenService.consumePasswordResetToken(sanitized.email, sanitized.token);
+    await this.tokenService.consumePasswordResetToken(
+      sanitized.email,
+      sanitized.token
+    );
 
     return { user, ...this.generateAuthTokens(user) };
   }
@@ -252,14 +301,16 @@ export class AuthService {
     const user = await this.userModel.findOne({ email: sanitized.email });
 
     if (!user) {
-      throw new BadRequestError('Account with this email does not exist');
+      throw new BadRequestError("Account with this email does not exist");
     }
 
     if (user.emailVerified) {
-      throw new BadRequestError('Email already verified');
+      throw new BadRequestError("Email already verified");
     }
 
-    const token = await this.tokenService.createEmailVerificationToken(user.email);
+    const token = await this.tokenService.createEmailVerificationToken(
+      user.email
+    );
 
     const emailResult = await this.emailService.sendEmailVerificationEmail({
       to: user.email,
@@ -268,9 +319,9 @@ export class AuthService {
     });
 
     if (!emailResult?.success) {
-      throw new AppError('Failed to send verification email', {
+      throw new AppError("Failed to send verification email", {
         statusCode: 500,
-        code: 'EMAIL_SEND_FAILED',
+        code: "EMAIL_SEND_FAILED",
         details: emailResult?.error ?? null,
       });
     }
@@ -287,7 +338,7 @@ export class AuthService {
     );
 
     if (!isValid) {
-      throw new BadRequestError('Invalid or expired verification token');
+      throw new BadRequestError("Invalid or expired verification token");
     }
 
     const user = await this.userModel.findOneAndUpdate(
@@ -296,7 +347,10 @@ export class AuthService {
       { new: true }
     );
 
-    await this.tokenService.consumeEmailVerificationToken(sanitized.email, sanitized.token);
+    await this.tokenService.consumeEmailVerificationToken(
+      sanitized.email,
+      sanitized.token
+    );
 
     if (user) {
       this.messagingHooks.onUserEmailVerified(user);
@@ -309,17 +363,19 @@ export class AuthService {
     const sanitized = this.sanitize(payload);
 
     const purposes = Array.isArray(sanitized.purposes)
-      ? sanitized.purposes.filter((item) => typeof item === 'string' && item.length > 0)
+      ? sanitized.purposes.filter(
+          (item) => typeof item === "string" && item.length > 0
+        )
       : [];
 
     const user = await this.userModel.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedError('User not found');
+      throw new UnauthorizedError("User not found");
     }
 
     if (!user.emailVerified) {
-      throw new BadRequestError('Verify email before completing onboarding');
+      throw new BadRequestError("Verify email before completing onboarding");
     }
 
     user.role = sanitized.role ?? user.role;
@@ -355,7 +411,7 @@ export class AuthService {
     const sanitized = this.sanitize(profile);
 
     if (!sanitized.email) {
-      throw new BadRequestError('Google account email is required');
+      throw new BadRequestError("Google account email is required");
     }
 
     let user = null;
@@ -375,7 +431,7 @@ export class AuthService {
       user.fullName = sanitized.fullName ?? user.fullName;
       user.profileImageUrl = sanitized.profileImageUrl ?? user.profileImageUrl;
       user.emailVerified = sanitized.emailVerified ?? user.emailVerified;
-      user.authMethod = 'google';
+      user.authMethod = "google";
 
       await user.save();
 
@@ -387,12 +443,12 @@ export class AuthService {
     }
 
     const googleUserPayload = {
-      fullName: sanitized.fullName ?? 'Google User',
+      fullName: sanitized.fullName ?? "Google User",
       email: sanitized.email,
       password: null,
       profileImageUrl: sanitized.profileImageUrl ?? null,
       googleUserId: sanitized.googleId ?? null,
-      authMethod: 'google',
+      authMethod: "google",
       emailVerified: sanitized.emailVerified ?? false,
     };
 
@@ -407,7 +463,7 @@ export class AuthService {
 
   #getGoogleOAuth() {
     if (!this.googleOAuth) {
-      throw new BadRequestError('Google OAuth is not configured');
+      throw new BadRequestError("Google OAuth is not configured");
     }
 
     return this.googleOAuth;

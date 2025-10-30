@@ -1,5 +1,6 @@
-import { AuthService } from '../services/auth.service.js';
-import { getConfig } from '../config/env.js';
+import { AuthService } from "../services/auth.service.js";
+import { getConfig } from "../config/env.js";
+import { UnauthorizedError, BadRequestError } from "../utils/errors.js";
 
 // Orchestrates HTTP-level auth flows by delegating to AuthService and shaping responses.
 export class AuthController {
@@ -18,31 +19,28 @@ export class AuthController {
     this.googleSignInWithIdToken = this.googleSignInWithIdToken.bind(this);
     this.googleSignInWithCode = this.googleSignInWithCode.bind(this);
     this.googleAuthUrl = this.googleAuthUrl.bind(this);
+    this.uploadProfileImage = this.uploadProfileImage.bind(this);
   }
 
   async register(req, res, next) {
     try {
       const { fullName, email, password, phoneNumber } = req.body;
 
-      let profileImageUrl = null;
-      if (req.file) {
-        profileImageUrl = await this.authService.uploadProfileImage(
-          req.file.buffer,
-          req.file.originalname
-        );
-      }
+      // Registration now accepts application/json only. Profile image uploads
+      // must be performed after authentication via the separate
+      // /api/v1/auth/profile-image endpoint.
 
-      const { user, accessToken, refreshToken } = await this.authService.registerUser({
-        fullName,
-        email,
-        password,
-        phoneNumber,
-        profileImageUrl,
-      });
+      const { user, accessToken, refreshToken } =
+        await this.authService.registerUser({
+          fullName,
+          email,
+          password,
+          phoneNumber,
+        });
 
       return res.status(201).json({
         success: true,
-        message: 'Registration successful',
+        message: "Registration successful",
         data: {
           user,
           tokens: {
@@ -56,17 +54,44 @@ export class AuthController {
     }
   }
 
-  async login(req, res, next) {
+  async uploadProfileImage(req, res, next) {
     try {
-      const { email, password } = req.body;
-      const { user, accessToken, refreshToken } = await this.authService.authenticateUser({
-        email,
-        password,
-      });
+      if (!req.user) {
+        throw new UnauthorizedError("Authentication required");
+      }
+
+      if (!req.file || !req.file.buffer) {
+        throw new BadRequestError("No file uploaded");
+      }
+
+      const updated = await this.authService.updateProfileImage(
+        req.user.id,
+        req.file.buffer,
+        req.file.originalname
+      );
 
       return res.status(200).json({
         success: true,
-        message: 'Login successful',
+        message: "Profile image uploaded",
+        data: { user: updated.user, profileImageUrl: updated.profileImageUrl },
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async login(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      const { user, accessToken, refreshToken } =
+        await this.authService.authenticateUser({
+          email,
+          password,
+        });
+
+      return res.status(200).json({
+        success: true,
+        message: "Login successful",
         data: {
           user,
           tokens: {
@@ -83,12 +108,15 @@ export class AuthController {
   async refresh(req, res, next) {
     try {
       const { refreshToken } = req.body;
-      const { user, accessToken: newAccessToken, refreshToken: newRefreshToken } =
-        await this.authService.refreshSession(refreshToken);
+      const {
+        user,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      } = await this.authService.refreshSession(refreshToken);
 
       const payload = {
         success: true,
-        message: 'Session refreshed',
+        message: "Session refreshed",
         data: {
           user,
           tokens: {
@@ -98,7 +126,7 @@ export class AuthController {
         },
       };
 
-      if (this.config.nodeEnv !== 'production') {
+      if (this.config.nodeEnv !== "production") {
         payload.data.debug = { refreshToken: newRefreshToken };
       }
 
@@ -115,10 +143,10 @@ export class AuthController {
 
       const response = {
         success: true,
-        message: 'Password reset OTP issued. Check your email for the code.',
+        message: "Password reset OTP issued. Check your email for the code.",
       };
 
-      if (this.config.nodeEnv !== 'production') {
+      if (this.config.nodeEnv !== "production") {
         response.debugToken = token;
       }
 
@@ -131,15 +159,16 @@ export class AuthController {
   async resetPassword(req, res, next) {
     try {
       const { email, token, newPassword } = req.body;
-      const { user, accessToken, refreshToken } = await this.authService.resetPassword({
-        email,
-        token,
-        newPassword,
-      });
+      const { user, accessToken, refreshToken } =
+        await this.authService.resetPassword({
+          email,
+          token,
+          newPassword,
+        });
 
       return res.status(200).json({
         success: true,
-        message: 'Password updated successfully',
+        message: "Password updated successfully",
         data: {
           user,
           tokens: {
@@ -160,10 +189,10 @@ export class AuthController {
 
       const response = {
         success: true,
-        message: 'Verification OTP issued. Check your email for the code.',
+        message: "Verification OTP issued. Check your email for the code.",
       };
 
-      if (this.config.nodeEnv !== 'production') {
+      if (this.config.nodeEnv !== "production") {
         response.debugToken = token;
       }
 
@@ -180,7 +209,7 @@ export class AuthController {
 
       return res.status(200).json({
         success: true,
-        message: 'Email verified successfully',
+        message: "Email verified successfully",
         data: { user },
       });
     } catch (error) {
@@ -199,7 +228,7 @@ export class AuthController {
 
       return res.status(200).json({
         success: true,
-        message: 'Onboarding completed successfully',
+        message: "Onboarding completed successfully",
         data: { user },
       });
     } catch (error) {
@@ -215,7 +244,7 @@ export class AuthController {
 
       return res.status(200).json({
         success: true,
-        message: 'Google sign-in successful',
+        message: "Google sign-in successful",
         data: {
           user,
           tokens: {
@@ -237,7 +266,7 @@ export class AuthController {
 
       return res.status(200).json({
         success: true,
-        message: 'Google OAuth exchange successful',
+        message: "Google OAuth exchange successful",
         data: {
           user,
           tokens: {
@@ -258,7 +287,7 @@ export class AuthController {
 
       return res.status(200).json({
         success: true,
-        message: 'Google authorization URL generated',
+        message: "Google authorization URL generated",
         data: { url },
       });
     } catch (error) {
