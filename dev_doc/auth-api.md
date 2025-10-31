@@ -50,6 +50,13 @@ Tokens are always returned inside `data.tokens` unless the endpoint only mutates
 | Authentication | `Authorization: Bearer <accessToken>` for protected routes |
 | Date handling | All timestamps are ISO 8601 strings in UTC |
 
+### Email delivery & rate limits
+
+- **Provider selection**: Production uses [Resend](https://resend.com/) via `RESEND_API_KEY`. If the key is absent (e.g. local development), the service falls back to the SMTP credentials supplied in `MAIL_SMTP_*`.
+- **Allowed sender**: Resend requires `MAIL_FROM_ADDRESS` to live on a verified domain. Gmail addresses work only when using the SMTP fallback and will be rejected if the Resend key is present.
+- **Branded templates**: Password-reset and email-verification emails share a consistent layout with CTA buttons generated from `MAIL_FRONTEND_BASE_URL`.
+- **Throttle guard**: OTP requests are throttled per email address. Defaults (`AUTH_OTP_COOLDOWN_SECONDS=60`, `AUTH_OTP_MAX_PER_HOUR=5`) reject rapid retries with `429 OTP_RATE_LIMITED` and a suggested retry timestamp in the error payload.
+
 The backend also accepts the optional header `x-request-id` if the client wants to supply a request correlation ID; otherwise one is generated automatically.
 
 ---

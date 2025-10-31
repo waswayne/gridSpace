@@ -21,6 +21,8 @@ const envSchema = Joi.object({
   REFRESH_TOKEN_EXPIRES_IN: Joi.string().default('7d'),
   PASSWORD_RESET_TTL_MINUTES: Joi.number().integer().positive().default(60),
   EMAIL_VERIFICATION_TTL_MINUTES: Joi.number().integer().positive().default(30),
+  AUTH_OTP_COOLDOWN_SECONDS: Joi.number().integer().min(0).default(60),
+  AUTH_OTP_MAX_PER_HOUR: Joi.number().integer().min(1).default(5),
   CLOUDINARY_CLOUD_NAME: Joi.string().trim(),
   CLOUDINARY_API_KEY: Joi.string().trim(),
   CLOUDINARY_API_SECRET: Joi.string().trim(),
@@ -33,6 +35,7 @@ const envSchema = Joi.object({
   MAIL_SMTP_USER: Joi.string().trim(),
   MAIL_SMTP_PASS: Joi.string().trim(),
   MAIL_SMTP_APP_PASSWORD: Joi.string().trim(),
+  RESEND_API_KEY: Joi.string().trim(),
   MAIL_FRONTEND_BASE_URL: Joi.string().uri(),
   GOOGLE_OAUTH_CLIENT_ID: Joi.string().trim(),
   GOOGLE_OAUTH_CLIENT_SECRET: Joi.string().trim(),
@@ -105,6 +108,8 @@ export const getConfig = () => {
       refreshTokenExpiresIn: value.REFRESH_TOKEN_EXPIRES_IN,
       passwordResetTtlMinutes: value.PASSWORD_RESET_TTL_MINUTES,
       emailVerificationTtlMinutes: value.EMAIL_VERIFICATION_TTL_MINUTES,
+      otpCooldownSeconds: value.AUTH_OTP_COOLDOWN_SECONDS,
+      otpMaxPerHour: value.AUTH_OTP_MAX_PER_HOUR,
     },
     cloudinary: {
       cloudName: value.CLOUDINARY_CLOUD_NAME,
@@ -115,6 +120,9 @@ export const getConfig = () => {
       fromAddress: value.MAIL_FROM_ADDRESS,
       fromName: value.MAIL_FROM_NAME,
       frontendBaseUrl: value.MAIL_FRONTEND_BASE_URL,
+      resend: {
+        apiKey: value.RESEND_API_KEY,
+      },
       smtp: {
         service: value.MAIL_SMTP_SERVICE,
         host: value.MAIL_SMTP_HOST,

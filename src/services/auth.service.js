@@ -9,6 +9,7 @@ import { EmailVerificationTokenModel } from "../models/email-verification-token.
 import { MessagingHookService } from "./messaging-hook.service.js";
 import { EmailService } from "./email.service.js";
 import { GoogleOAuthService } from "./google-oauth.service.js";
+import { OtpThrottleService } from "./otp-throttle.service.js";
 import {
   AppError,
   BadRequestError,
@@ -52,6 +53,7 @@ export class AuthService {
     config,
     messagingHookService = new MessagingHookService(),
     emailService = new EmailService(),
+    otpThrottleService = new OtpThrottleService(),
     googleOAuthService,
   } = {}) {
     if (!config) {
@@ -82,6 +84,8 @@ export class AuthService {
         api_secret: config.cloudinary?.apiSecret,
       });
     }
+
+    this.otpThrottle = otpThrottleService;
   }
 
   sanitize(input) {
@@ -248,6 +252,11 @@ export class AuthService {
       throw new BadRequestError("Account with this email does not exist");
     }
 
+    await this.#enforceOtpThrottle({
+      email: user.email,
+      type: "password-reset",
+    });
+
     const token = await this.tokenService.createPasswordResetToken(user.email);
 
     const emailResult = await this.emailService.sendPasswordResetEmail({
@@ -307,6 +316,11 @@ export class AuthService {
     if (user.emailVerified) {
       throw new BadRequestError("Email already verified");
     }
+
+    await this.#enforceOtpThrottle({
+      email: user.email,
+      type: "email-verification",
+    });
 
     const token = await this.tokenService.createEmailVerificationToken(
       user.email
@@ -467,5 +481,17 @@ export class AuthService {
     }
 
     return this.googleOAuth;
+  }
+
+  async #enforceOtpThrottle({ email, type }) {
+    const cooldownSeconds = this.config.auth?.otpCooldownSeconds ?? 60;
+    const maxPerHour = this.config.auth?.otpMaxPerHour ?? 5;
+
+    await this.otpThrottle.assertCanSend({
+      email,
+      type,
+      cooldownSeconds,
+      maxPerHour,
+    });
   }
 }

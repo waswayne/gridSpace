@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthService } from '../../src/services/auth.service.js';
+import { AppError } from '../../src/utils/errors.js';
 
 const baseConfig = {
   nodeEnv: 'test',
@@ -8,6 +9,8 @@ const baseConfig = {
     jwtExpiresIn: '1h',
     refreshTokenSecret: 'b'.repeat(64),
     refreshTokenExpiresIn: '7d',
+    otpCooldownSeconds: 60,
+    otpMaxPerHour: 5,
   },
   cloudinary: {
     cloudName: 'demo',
@@ -46,6 +49,88 @@ const createGoogleOAuthMock = () => ({
 const createEmailServiceMock = () => ({
   sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true, messageId: 'msg-reset' }),
   sendEmailVerificationEmail: vi.fn().mockResolvedValue({ success: true, messageId: 'msg-verify' }),
+});
+
+describe('AuthService - OTP throttling', () => {
+  let userModel;
+  let tokenService;
+  let emailService;
+  let otpThrottle;
+  let service;
+
+  beforeEach(() => {
+    userModel = {
+      findOne: vi.fn(),
+    };
+    tokenService = {
+      createPasswordResetToken: vi.fn().mockResolvedValue('111222'),
+      createEmailVerificationToken: vi.fn().mockResolvedValue('333444'),
+    };
+    emailService = {
+      sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true }),
+      sendEmailVerificationEmail: vi.fn().mockResolvedValue({ success: true }),
+    };
+    otpThrottle = {
+      assertCanSend: vi.fn().mockResolvedValue(),
+    };
+
+    service = new AuthService({
+      userModel,
+      tokenService,
+      messagingHookService: createMessagingHookMock(),
+      emailService,
+      otpThrottleService: otpThrottle,
+      config: baseConfig,
+    });
+  });
+
+  it('enforces throttle before issuing password reset token', async () => {
+    const userDoc = { email: 'reset@example.com', fullName: 'Reset User' };
+    userModel.findOne.mockResolvedValue(userDoc);
+
+    await service.requestPasswordReset('reset@example.com');
+
+    expect(otpThrottle.assertCanSend).toHaveBeenCalledWith({
+      email: 'reset@example.com',
+      type: 'password-reset',
+      cooldownSeconds: baseConfig.auth.otpCooldownSeconds,
+      maxPerHour: baseConfig.auth.otpMaxPerHour,
+    });
+    expect(tokenService.createPasswordResetToken).toHaveBeenCalled();
+  });
+
+  it('propagates throttle errors for password reset requests', async () => {
+    const throttleError = new AppError('Wait', { statusCode: 429, code: 'OTP_RATE_LIMITED' });
+    otpThrottle.assertCanSend.mockRejectedValue(throttleError);
+    userModel.findOne.mockResolvedValue({ email: 'reset@example.com' });
+
+    await expect(service.requestPasswordReset('reset@example.com')).rejects.toBe(throttleError);
+    expect(tokenService.createPasswordResetToken).not.toHaveBeenCalled();
+  });
+
+  it('enforces throttle before issuing email verification token', async () => {
+    const userDoc = { email: 'verify@example.com', fullName: 'Verify User', emailVerified: false };
+    userModel.findOne.mockResolvedValue(userDoc);
+
+    await service.requestEmailVerification('verify@example.com');
+
+    expect(otpThrottle.assertCanSend).toHaveBeenCalledWith({
+      email: 'verify@example.com',
+      type: 'email-verification',
+      cooldownSeconds: baseConfig.auth.otpCooldownSeconds,
+      maxPerHour: baseConfig.auth.otpMaxPerHour,
+    });
+    expect(tokenService.createEmailVerificationToken).toHaveBeenCalled();
+  });
+
+  it('propagates throttle errors for email verification requests', async () => {
+    const throttleError = new AppError('Wait', { statusCode: 429, code: 'OTP_RATE_LIMITED' });
+    otpThrottle.assertCanSend.mockRejectedValue(throttleError);
+    userModel.findOne.mockResolvedValue({ email: 'verify@example.com', emailVerified: false });
+
+    await expect(service.requestEmailVerification('verify@example.com')).rejects.toBe(throttleError);
+    expect(tokenService.createEmailVerificationToken).not.toHaveBeenCalled();
+  });
 });
 
 describe.skip('AuthService (legacy)', () => {

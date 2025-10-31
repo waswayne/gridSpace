@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { getConfig } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
@@ -8,7 +9,11 @@ export class EmailService {
   constructor({ config = getConfig(), transporter } = {}) {
     this.config = config;
     this.mailConfig = config.mail ?? {};
-    this.transporter = transporter ?? this.#createTransporter();
+    this.resendApiKey = this.mailConfig.resend?.apiKey;
+    this.transporter = this.resendApiKey
+      ? null
+      : transporter ?? this.#createTransporter();
+    this.resendClient = this.resendApiKey ? new Resend(this.resendApiKey) : null;
   }
 
   async sendEmailVerificationEmail({ to, code, userName }) {
@@ -50,6 +55,10 @@ export class EmailService {
   }
 
   #isConfigured() {
+    if (this.resendApiKey) {
+      return Boolean(this.resendClient && this.mailConfig.fromAddress);
+    }
+
     const smtp = this.mailConfig.smtp ?? {};
     return Boolean(this.transporter && smtp.user && this.mailConfig.fromAddress);
   }
@@ -113,6 +122,36 @@ export class EmailService {
   }
 
   async #send(mailOptions, kind) {
+    if (this.resendClient) {
+      try {
+        const { data, error } = await this.resendClient.emails.send({
+          from: this.#getFrom(),
+          to: mailOptions.to,
+          subject: mailOptions.subject,
+          html: mailOptions.html,
+          text: mailOptions.text,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        logger.info(`Sent ${kind} email via Resend`, {
+          messageId: data?.id ?? null,
+          to: mailOptions.to,
+        });
+
+        return { success: true, messageId: data?.id ?? null };
+      } catch (error) {
+        logger.error(`Failed to send ${kind} email via Resend`, {
+          error: error.message,
+          to: mailOptions.to,
+        });
+
+        return { success: false, error: error.message };
+      }
+    }
+
     try {
       const info = await this.transporter.sendMail(mailOptions);
       logger.info(`Sent ${kind} email`, { messageId: info.messageId, to: mailOptions.to });
@@ -124,37 +163,118 @@ export class EmailService {
   }
 
   #buildVerificationHtml(code, userName = 'there') {
+    const displayName = this.mailConfig.fromName ?? DEFAULT_FROM_NAME;
+    const safeBaseUrl = this.mailConfig.frontendBaseUrl?.replace(/\/$/, '') ?? '';
+    const ctaMarkup = safeBaseUrl
+      ? `
+        <tr>
+          <td align="center" style="padding: 0 24px 24px;">
+            <a href="${safeBaseUrl}/verify-email" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">Verify email</a>
+          </td>
+        </tr>
+      `
+      : '';
+
     return `
-      <p>Hello ${userName},</p>
-      <p>Your GridSpace verification code is:</p>
-      <p style="font-size:24px;font-weight:bold;letter-spacing:6px;">${code}</p>
-      <p>This code expires soon. If you did not request it, please ignore this email.</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;color:#111827;">
+        <tr>
+          <td style="padding:32px 24px 8px;font-size:18px;font-weight:600;">${displayName}</td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 16px;font-size:16px;">Hello ${userName},</td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 16px;font-size:16px;line-height:1.6;">
+            Thanks for joining ${displayName}! Use the one-time code below to verify your email address and activate your account.
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:0 24px 24px;">
+            <div style="display:inline-block;font-size:32px;font-weight:700;letter-spacing:8px;color:#1f2937;padding:16px 28px;border:2px dashed #2563eb;border-radius:12px;background:#f9fafb;">
+              ${code}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 16px;font-size:15px;line-height:1.6;">
+            The code expires in 30 minutes. To keep your account secure, please don’t share it with anyone.
+          </td>
+        </tr>
+        ${ctaMarkup}
+        <tr>
+          <td style="padding:0 24px 24px;font-size:13px;color:#6b7280;line-height:1.6;">
+            If you didn’t request this, you can safely ignore this email. Need help? Reply to this message or contact support in the ${displayName} app.
+          </td>
+        </tr>
+      </table>
     `;
   }
 
   #buildVerificationText(code, userName = 'there') {
-    return `Hello ${userName},\n\nYour GridSpace verification code is: ${code}\nThis code expires soon. If you did not request it, please ignore this email.`;
+    const displayName = this.mailConfig.fromName ?? DEFAULT_FROM_NAME;
+    const safeBaseUrl = this.mailConfig.frontendBaseUrl?.replace(/\/$/, '') ?? '';
+    const urlLine = safeBaseUrl
+      ? `\n\nOpen ${safeBaseUrl}/verify-email to finish verifying your account.`
+      : '';
+
+    return `Hello ${userName},\n\nWelcome to ${displayName}! Use the verification code below within the next 30 minutes to activate your account:\n\n${code}\n\nKeep this code private.${urlLine}\nIf you did not request this, you can ignore this email.`;
   }
 
   #buildPasswordResetHtml(code, userName = 'there') {
-    const supportLink = this.mailConfig.frontendBaseUrl
-      ? `<p>You can also head to <a href="${this.mailConfig.frontendBaseUrl}">${this.mailConfig.frontendBaseUrl}</a> to finish resetting your password.</p>`
+    const displayName = this.mailConfig.fromName ?? DEFAULT_FROM_NAME;
+    const safeBaseUrl = this.mailConfig.frontendBaseUrl?.replace(/\/$/, '') ?? '';
+    const ctaMarkup = safeBaseUrl
+      ? `
+        <tr>
+          <td align="center" style="padding: 0 24px 24px;">
+            <a href="${safeBaseUrl}/reset-password" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">Open ${displayName}</a>
+          </td>
+        </tr>
+      `
       : '';
 
     return `
-      <p>Hello ${userName},</p>
-      <p>We received a request to reset your GridSpace password. Use this code:</p>
-      <p style="font-size:24px;font-weight:bold;letter-spacing:6px;">${code}</p>
-      <p>This code expires in one hour. If you did not request this, you can safely ignore this email.</p>
-      ${supportLink}
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;color:#111827;">
+        <tr>
+          <td style="padding:32px 24px 8px;font-size:18px;font-weight:600;">${displayName}</td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 16px;font-size:16px;">Hello ${userName},</td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 16px;font-size:16px;line-height:1.6;">
+            We received a request to reset your ${displayName} password. Enter the one-time code below to continue.
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:0 24px 24px;">
+            <div style="display:inline-block;font-size:32px;font-weight:700;letter-spacing:8px;color:#1f2937;padding:16px 28px;border:2px dashed #2563eb;border-radius:12px;background:#f9fafb;">
+              ${code}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 16px;font-size:15px;line-height:1.6;">
+            This code expires in one hour and should not be shared with anyone. If you did not initiate this request, simply ignore this email and your password will remain unchanged.
+          </td>
+        </tr>
+        ${ctaMarkup}
+        <tr>
+          <td style="padding:0 24px 24px;font-size:13px;color:#6b7280;line-height:1.6;">
+            Need help? Reply to this message or contact support through the ${displayName} app.
+          </td>
+        </tr>
+      </table>
     `;
   }
 
   #buildPasswordResetText(code, userName = 'there') {
-    const base = this.mailConfig.frontendBaseUrl
-      ? ` Visit ${this.mailConfig.frontendBaseUrl} to finish resetting your password.`
+    const displayName = this.mailConfig.fromName ?? DEFAULT_FROM_NAME;
+    const safeBaseUrl = this.mailConfig.frontendBaseUrl?.replace(/\/$/, '') ?? '';
+    const urlLine = safeBaseUrl
+      ? `\n\nOpen ${safeBaseUrl}/reset-password to continue the reset.`
       : '';
 
-    return `Hello ${userName},\n\nUse this GridSpace password reset code: ${code}. It expires in one hour.${base}\nIf you did not request this, you can ignore this email.`;
+    return `Hello ${userName},\n\nWe received a request to reset your ${displayName} password. Use the one-time code below within the next hour:\n\n${code}\n\nDo not share this code with anyone.${urlLine}\nIf you did not request this, you can safely ignore this email.`;
   }
 }
