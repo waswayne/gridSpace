@@ -10,3 +10,6 @@ logs/
 /docs/
 workspace_prd_v1.4.md
 workspace_booking_platform2(swain).pdf
+
+# Local debugging helpers
+test-smpt.js
